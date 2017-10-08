@@ -42,7 +42,7 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "midi_constants.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -95,7 +95,11 @@ int main(void)
   MX_USART1_UART_Init(&huart1);
   HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
   /* USER CODE BEGIN 2 */
-
+  midi_note_cmd_t note;
+  note.command = NOTE_ON;
+  note.channel = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
+  note.note_number = NOTE_C_5;
+  note.velocity = 127;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -106,8 +110,10 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-      char msg[] = "hello";
-      HAL_UART_Transmit(&huart1,msg,7,1000);
+      HAL_UART_Transmit(&huart1,&note.channel,1,1000);
+      HAL_UART_Transmit(&huart1,&note.note_number,1,1000);
+      HAL_UART_Transmit(&huart1,&note.velocity,1,1000);
+      for(int i = 0; i < 100000; i++);
   }
   /* USER CODE END 3 */
 
