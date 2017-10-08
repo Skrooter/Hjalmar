@@ -89,21 +89,24 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART1_UART_Init();
-  MX_USART2_UART_Init();
 
+  UART_HandleTypeDef *huart1;
+  MX_USART1_UART_Init(huart1);
+  HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (1)
   {
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-    HAL_UART_TRANSMIT(huart1,"hello",7,1000);
+      char msg[] = "hello";
+      HAL_UART_Transmit(huart1,msg,7,1000);
   }
   /* USER CODE END 3 */
 
@@ -180,6 +183,7 @@ void _Error_Handler(char * file, int line)
   /* User can add his own implementation to report the HAL error return state */
   while(1) 
   {
+      HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
   }
   /* USER CODE END Error_Handler_Debug */ 
 }
