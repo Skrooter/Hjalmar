@@ -59,7 +59,7 @@ extern UART_HandleTypeDef huart2;
 
 extern void _Error_Handler(char *, int);
 
-void MX_USART1_UART_Init(UART_HandleTypeDef *huart1);
+void MX_UART_Init(UART_HandleTypeDef *huart);
 void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */

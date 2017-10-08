@@ -51,18 +51,16 @@ UART_HandleTypeDef huart2;
 
 /* USART1 init function */
 
-void MX_USART1_UART_Init(UART_HandleTypeDef *huart1)
+void MX_USART1_UART_Init(UART_HandleTypeDef *huart)
 {
-
-  huart1->Instance = USART1;
-  huart1->Init.BaudRate = 31250;
-  huart1->Init.WordLength = UART_WORDLENGTH_8B;
-  huart1->Init.StopBits = UART_STOPBITS_1;
-  huart1->Init.Parity = UART_PARITY_NONE;
-  huart1->Init.Mode = UART_MODE_TX_RX;
-  huart1->Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1->Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(huart1) != HAL_OK)
+  huart->Init.BaudRate = 31250;
+  huart->Init.WordLength = UART_WORDLENGTH_8B;
+  huart->Init.StopBits = UART_STOPBITS_1;
+  huart->Init.Parity = UART_PARITY_NONE;
+  huart->Init.Mode = UART_MODE_TX_RX;
+  huart->Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart->Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(huart) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
