@@ -105,6 +105,9 @@ int main(void)
   note.velocity = 0x55;
   note.dummy    = 0xFF;
 
+  uint8_t receive_buff[3];
+
+  HAL_UART_Receive_DMA(&huart2,receive_buff,3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -211,6 +214,16 @@ void _Error_Handler(char * file, int line)
   /* User can add his own implementation to report the HAL error return state */
   while(1) 
   {
+      HAL_UART_AbortTransmit(&huart3);
+      char tx_msg[64] = {0};
+      sprintf(tx_msg,"error in %s Line %d\r\n", file, line);
+      while(huart2.gState != HAL_UART_STATE_READY);
+      HAL_UART_Transmit_DMA(&huart3, (uint8_t *)tx_msg, 64);
+      while(huart2.gState != HAL_UART_STATE_READY);
+      HAL_UART_DeInit(&huart3);
+      HAL_UART_DeInit(&huart2);
+      HAL_UART_AbortTransmit(&huart3);
+
       //if (huart1 == HAL_ERROR){
           HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
       //}

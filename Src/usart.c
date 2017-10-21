@@ -247,16 +247,26 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 } 
 
 /* USER CODE BEGIN 1 */
-__weak void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    char tx_msg[1024];
-    HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-    sprintf(tx_msg,"Instance: %d, RxXferCount %d, RxXferSize %d\n",(int) huart->Instance, huart->RxXferCount, huart->RxXferSize);
-    HAL_UART_Transmit_DMA(&huart3, (uint8_t *)tx_msg, 1024);
+    if (huart->Instance == USART2){
+        HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+        char tx_msg[64] = {0};
+        sprintf(tx_msg,"Instance: %d, RxXferCount %d, RxXferSize %d\r\n",(int) huart->Instance, huart->RxXferCount, huart->RxXferSize);
+        huart->gState = HAL_UART_STATE_READY;
+        if( HAL_UART_Transmit_DMA(&huart3, (uint8_t *)tx_msg, 64) != HAL_OK){
+            _Error_Handler(__FILE__, __LINE__);
+        }
+    }
+    else {
+        HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+    }
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
-    HAL_UART_DMAStop(huart);
+    //if (huart->Instance == USART2){
+            HAL_UART_DMAStop(huart);
+    //}
 }
 
 /* USER CODE END 1 */
