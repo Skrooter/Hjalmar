@@ -247,6 +247,17 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+__weak void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    char tx_msg[1024];
+    sprintf(tx_msg,"Instance: %d, RxXferCount %d, RxXferSize %d\n",(int) huart->Instance, huart->RxXferCount, huart->RxXferSize);
+    HAL_UART_Transmit_DMA(&huart3, (uint8_t *)tx_msg, 1024);
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
+    HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+    huart->gState = HAL_UART_STATE_READY;
+}
 
 /* USER CODE END 1 */
 
