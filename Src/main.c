@@ -38,6 +38,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -90,11 +91,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
 
+  /* USER CODE BEGIN 2 */
   UART_HandleTypeDef huart;
   huart.Instance = USART2;
   MX_USART1_UART_Init(&huart);
   HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
-  /* USER CODE BEGIN 2 */
+
   midi_note_cmd_t note;
   note.command = NOTE_ON;
   note.channel = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;

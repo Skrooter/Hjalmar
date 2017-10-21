@@ -60,6 +60,10 @@
 #define OTG_FS_PowerSwitchOn_GPIO_Port GPIOC
 #define B1_Pin GPIO_PIN_0
 #define B1_GPIO_Port GPIOA
+#define MIDI_TX_Pin GPIO_PIN_2
+#define MIDI_TX_GPIO_Port GPIOA
+#define MIDI_RX_Pin GPIO_PIN_3
+#define MIDI_RX_GPIO_Port GPIOA
 #define BOOT1_Pin GPIO_PIN_2
 #define BOOT1_GPIO_Port GPIOB
 #define G_Pin GPIO_PIN_7
@@ -88,10 +92,6 @@
 #define LD5_GPIO_Port GPIOD
 #define LD6_Pin GPIO_PIN_15
 #define LD6_GPIO_Port GPIOD
-#define MIDI_OUT_Pin GPIO_PIN_9
-#define MIDI_OUT_GPIO_Port GPIOA
-#define MIDI_IN_Pin GPIO_PIN_10
-#define MIDI_IN_GPIO_Port GPIOA
 #define Audio_RST_Pin GPIO_PIN_4
 #define Audio_RST_GPIO_Port GPIOD
 #define OTG_FS_OverCurrent_Pin GPIO_PIN_5
