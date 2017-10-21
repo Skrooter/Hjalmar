@@ -124,7 +124,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     hdma_usart2_rx.Init.MemInc = DMA_MINC_ENABLE;
     hdma_usart2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_usart2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart2_rx.Init.Mode = DMA_NORMAL;
+    hdma_usart2_rx.Init.Mode = DMA_CIRCULAR;
     hdma_usart2_rx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     hdma_usart2_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_usart2_rx) != HAL_OK)
@@ -142,7 +142,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     hdma_usart2_tx.Init.MemInc = DMA_MINC_ENABLE;
     hdma_usart2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_usart2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart2_tx.Init.Mode = DMA_NORMAL;
+    hdma_usart2_tx.Init.Mode = DMA_CIRCULAR;
     hdma_usart2_tx.Init.Priority = DMA_PRIORITY_LOW;
     hdma_usart2_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
@@ -184,7 +184,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     hdma_usart3_tx.Init.MemInc = DMA_MINC_ENABLE;
     hdma_usart3_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_usart3_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart3_tx.Init.Mode = DMA_NORMAL;
+    hdma_usart3_tx.Init.Mode = DMA_CIRCULAR;
     hdma_usart3_tx.Init.Priority = DMA_PRIORITY_LOW;
     hdma_usart3_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_usart3_tx) != HAL_OK)
@@ -250,13 +250,13 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 __weak void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     char tx_msg[1024];
+    HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
     sprintf(tx_msg,"Instance: %d, RxXferCount %d, RxXferSize %d\n",(int) huart->Instance, huart->RxXferCount, huart->RxXferSize);
     HAL_UART_Transmit_DMA(&huart3, (uint8_t *)tx_msg, 1024);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
-    HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-    huart->gState = HAL_UART_STATE_READY;
+    HAL_UART_DMAStop(huart);
 }
 
 /* USER CODE END 1 */

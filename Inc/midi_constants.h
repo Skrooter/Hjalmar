@@ -200,10 +200,10 @@ typedef enum{
 } midi_channel;
 
 typedef struct midi_note_cmd{
-    message_type        command;
-    midi_channel        channel;
-    midi_note_number    note_number;
+    uint8_t             cmd_chan;
+    uint8_t             note_number;
     uint8_t             velocity;
+    uint8_t             dummy;
 } midi_note_cmd_t;
 
 typedef struct midi_poly_pressure{

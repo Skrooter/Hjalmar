@@ -100,10 +100,10 @@ int main(void)
   HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
 
   midi_note_cmd_t note;
-  note.command = NOTE_ON;
-  note.channel = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
+  note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
   note.note_number = NOTE_DB_0;
   note.velocity = 0x55;
+  note.dummy    = 0xFF;
 
   /* USER CODE END 2 */
 
@@ -114,29 +114,26 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-      note.channel = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
+      note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
 
       while(huart2.gState != HAL_UART_STATE_READY);
-      //HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-      if(HAL_UART_Transmit_DMA(&huart2,&note.channel,1) != HAL_OK){
-          _Error_Handler(__FILE__, __LINE__);
-      }
-      if(huart2.gState == HAL_UART_STATE_BUSY_TX){
-          HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_SET);
-      }
-      while(huart2.gState != HAL_UART_STATE_READY);
-      //HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-      if(HAL_UART_Transmit_DMA(&huart2,&note.channel,1) != HAL_OK){
+      if(HAL_UART_Transmit_DMA(&huart2, (uint8_t *)&note, 4) != HAL_OK){
           _Error_Handler(__FILE__, __LINE__);
       }
       //HAL_UART_Transmit_DMA(&huart2,&note.note_number,sizeof(note.note_number));
       //HAL_UART_Transmit_DMA(&huart2,&note.velocity,sizeof(note.velocity));
       for(int i = 0; i < 100000; i++);
-      note.channel = (uint8_t) (NOTE_OFF << 4) | MIDI_CHANNEL_0;
+      note.cmd_chan = (uint8_t) (NOTE_OFF << 4) | MIDI_CHANNEL_0;
+      while(huart2.gState != HAL_UART_STATE_READY){
+          HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_SET);
+      }
+      if(HAL_UART_Transmit_DMA(&huart2, (uint8_t *)&note, 4) != HAL_OK){
+          _Error_Handler(__FILE__, __LINE__);
+      }
       //HAL_UART_Transmit_DMA(&huart2,&note.channel,sizeof(note.channel));
       //HAL_UART_Transmit_DMA(&huart2,&note.note_number,sizeof(note.note_number));
       //HAL_UART_Transmit_DMA(&huart2,&note.velocity,sizeof(note.velocity));
-      for(int i = 0; i < 100000; i++);
+      for(int i = 0; i < 1000000; i++);
 
   }
   /* USER CODE END 3 */
