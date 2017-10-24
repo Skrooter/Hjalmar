@@ -262,7 +262,8 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 
-HAL_StatusTypeDef transmit_midi_message(uint8_t *message, uint16_t size){
+HAL_StatusTypeDef transmit_midi_message(uint8_t *message, uint16_t size)
+{
     midi_tx_rdy = 0;
     return HAL_UART_Transmit_DMA(&huart2, message, size);
 }
@@ -277,7 +278,7 @@ HAL_StatusTypeDef receive_midi_message(uint8_t *message, uint16_t *size)
             return res;
     }
 
-    return HAL_UART_Transmit_DMA(&huart2, message, size);
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef receive_midi_type(uint8_t *message)

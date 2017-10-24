@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : USART.h
+  * File Name          : TIM.h
   * Description        : This file provides code for the configuration
-  *                      of the USART instances.
+  *                      of the TIM instances.
   ******************************************************************************
   ** This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -37,8 +37,8 @@
   ******************************************************************************
   */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __usart_H
-#define __usart_H
+#ifndef __tim_H
+#define __tim_H
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -51,8 +51,7 @@
 
 /* USER CODE END Includes */
 
-extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart3;
+extern TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN Private defines */
 
@@ -60,24 +59,19 @@ extern UART_HandleTypeDef huart3;
 
 extern void _Error_Handler(char *, int);
 
-void MX_USART2_UART_Init(void);
-void MX_USART3_UART_Init(void);
+void MX_TIM6_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
-HAL_StatusTypeDef transmit_midi_message(uint8_t *message, uint16_t size);
-HAL_StatusTypeDef receive_midi_message(uint8_t *message, uint16_t *size);
-HAL_StatusTypeDef receive_midi_type(uint8_t *message);
-uint8_t midi_tx_state (void);
-uint8_t midi_rx_state (void);
-uint8_t tx3_state (void);
+HAL_StatusTypeDef wait_ms (uint32_t wait_time);
+uint8_t wait_done_state(void);
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
-#endif /*__ usart_H */
+#endif /*__ tim_H */
 
 /**
   * @}

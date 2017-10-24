@@ -39,6 +39,7 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "dma.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -93,6 +94,7 @@ int main(void)
   MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
+  MX_TIM6_Init();
 
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
@@ -126,22 +128,25 @@ int main(void)
       while(!midi_tx_state());
       HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 
-      //HAL_UART_Transmit_DMA(&huart2,&note.note_number,sizeof(note.note_number));
-      //HAL_UART_Transmit_DMA(&huart2,&note.velocity,sizeof(note.velocity));
-      for(int i = 0; i < 100000; i++);
+      if(wait_ms(100) != HAL_OK)
+      {
+          _Error_Handler(__FILE__, __LINE__);
+      }
+      while (!wait_done_state());
+
       note.cmd_chan = (uint8_t) (NOTE_OFF << 4) | MIDI_CHANNEL_0;
       if(transmit_midi_message((uint8_t *)&note, 4) != HAL_OK){
           _Error_Handler(__FILE__, __LINE__);
       }
 
+      if(wait_ms(10) != HAL_OK)
+      {
+          _Error_Handler(__FILE__, __LINE__);
+      }
       HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-      while(!midi_tx_state());
+      while (!midi_tx_state());
+      while (!wait_done_state());
       HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-
-      //HAL_UART_Transmit_DMA(&huart2,&note.channel,sizeof(note.channel));
-      //HAL_UART_Transmit_DMA(&huart2,&note.note_number,sizeof(note.note_number));
-      //HAL_UART_Transmit_DMA(&huart2,&note.velocity,sizeof(note.velocity));
-      for(int i = 0; i < 1000000; i++);
 
   }
   /* USER CODE END 3 */
