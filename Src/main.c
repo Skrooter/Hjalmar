@@ -122,10 +122,9 @@ int main(void)
       if(transmit_midi_message((uint8_t *)&note, 4) != HAL_OK){
           _Error_Handler(__FILE__, __LINE__);
       }
-
-      while(!midi_tx_state()){
-          HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-      }
+      HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
+      while(!midi_tx_state());
+      HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 
       //HAL_UART_Transmit_DMA(&huart2,&note.note_number,sizeof(note.note_number));
       //HAL_UART_Transmit_DMA(&huart2,&note.velocity,sizeof(note.velocity));
@@ -135,7 +134,10 @@ int main(void)
           _Error_Handler(__FILE__, __LINE__);
       }
 
+      HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
       while(!midi_tx_state());
+      HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+
       //HAL_UART_Transmit_DMA(&huart2,&note.channel,sizeof(note.channel));
       //HAL_UART_Transmit_DMA(&huart2,&note.note_number,sizeof(note.note_number));
       //HAL_UART_Transmit_DMA(&huart2,&note.velocity,sizeof(note.velocity));
@@ -162,12 +164,11 @@ void SystemClock_Config(void)
 
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = 16;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 7;

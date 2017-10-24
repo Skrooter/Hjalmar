@@ -65,6 +65,8 @@ void MX_USART3_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
+HAL_StatusTypeDef receive_midi_type(uint8_t *message);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
