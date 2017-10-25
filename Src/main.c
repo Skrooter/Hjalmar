@@ -45,6 +45,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "midi_constants.h"
+#include "debug_uart.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -97,9 +98,12 @@ int main(void)
   MX_TIM6_Init();
 
   /* USER CODE BEGIN 2 */
+
   HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
+
+  init_debug(64, 8);
 
   midi_note_cmd_t note;
   note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
@@ -107,9 +111,14 @@ int main(void)
   note.velocity = 0x55;
   note.dummy    = 0xFF;
 
-  uint8_t receive_buff[3];
+  uint8_t *midi_message= {0};
+  uint16_t midi_message_size = 0;
 
-  HAL_UART_Receive_DMA(&huart2,receive_buff,3);
+  if (receive_midi_message( midi_message, &midi_message_size) != HAL_OK)
+  {
+      _Error_Handler(__FILE__, __LINE__);
+  }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,33 +128,37 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+
+
+
+
       note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
 
       if(transmit_midi_message((uint8_t *)&note, 4) != HAL_OK){
           _Error_Handler(__FILE__, __LINE__);
       }
       HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-      while(!midi_tx_state());
-      HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 
       if(wait_ms(100) != HAL_OK)
       {
           _Error_Handler(__FILE__, __LINE__);
       }
-      while (!wait_done_state());
+      while(!get_midi_tx_state());
+      while (!wait_done());
+      HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 
       note.cmd_chan = (uint8_t) (NOTE_OFF << 4) | MIDI_CHANNEL_0;
       if(transmit_midi_message((uint8_t *)&note, 4) != HAL_OK){
           _Error_Handler(__FILE__, __LINE__);
       }
 
-      if(wait_ms(10) != HAL_OK)
+      if(wait_ms(1000) != HAL_OK)
       {
           _Error_Handler(__FILE__, __LINE__);
       }
       HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-      while (!midi_tx_state());
-      while (!wait_done_state());
+      while (!get_midi_tx_state());
+      while (!wait_done());
       HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 
   }

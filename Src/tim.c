@@ -42,7 +42,7 @@
 
 /* USER CODE BEGIN 0 */
 
-uint8_t wait_done = 1;
+uint32_t wait_cnt = 1;
 
 /* USER CODE END 0 */
 
@@ -54,9 +54,9 @@ void MX_TIM6_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = (uint32_t) ((SystemCoreClock ) / 1000000) - 1;
+  htim6.Init.Prescaler = (uint32_t) (42000/2) - 1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 1000000;
+  htim6.Init.Period = 1;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -83,7 +83,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     __HAL_RCC_TIM6_CLK_ENABLE();
 
     /* TIM6 interrupt Init */
-    HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
   /* USER CODE BEGIN TIM6_MspInit 1 */
 
@@ -114,9 +114,8 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
 HAL_StatusTypeDef wait_ms (uint32_t wait_time)
 {
-    wait_done = 0;
+    wait_cnt = wait_time;
     HAL_StatusTypeDef res = HAL_OK;
-    htim6.Init.Period = wait_time;
     res = HAL_TIM_Base_Start_IT(&htim6);
     if(res != HAL_OK)
     {
@@ -126,14 +125,17 @@ HAL_StatusTypeDef wait_ms (uint32_t wait_time)
 
 }
 
-uint8_t wait_done_state(void)
+uint8_t wait_done(void)
 {
-    return wait_done;
+    return (wait_cnt == 0);
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-    wait_done = 1;
+    if (htim->Instance == TIM6)
+    {
+        wait_cnt -= 1;
+    }
 }
 
 

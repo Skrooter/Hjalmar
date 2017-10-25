@@ -63,7 +63,7 @@ void MX_TIM6_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 HAL_StatusTypeDef wait_ms (uint32_t wait_time);
-uint8_t wait_done_state(void);
+uint8_t wait_done(void);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 
 /* USER CODE END Prototypes */
