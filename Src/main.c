@@ -103,13 +103,14 @@ int main(void)
   HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
 
-  init_debug(64, 8);
+  init_debug(64, 7);
+
+  uint8_t current_note = NOTE_C_0;
 
   midi_note_cmd_t note;
   note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
-  note.note_number = NOTE_DB_0;
+  note.note_number = current_note;
   note.velocity = 0x55;
-  note.dummy    = 0xFF;
 
   uint8_t *midi_message= {0};
   uint16_t midi_message_size = 0;
@@ -133,6 +134,7 @@ int main(void)
 
 
       note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
+      note.note_number = current_note++;
 
       if(transmit_midi_message((uint8_t *)&note, 4) != HAL_OK){
           _Error_Handler(__FILE__, __LINE__);
