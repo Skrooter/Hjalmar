@@ -168,7 +168,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart2_tx);
 
     /* USART2 interrupt Init */
-    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(USART2_IRQn, 4, 1);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspInit 1 */
     midi_tx_rdy = 1;
@@ -214,7 +214,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart3_tx);
 
     /* USART3 interrupt Init */
-    HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(USART3_IRQn, 4, 0);
     HAL_NVIC_EnableIRQ(USART3_IRQn);
   /* USER CODE BEGIN USART3_MspInit 1 */
 
@@ -313,7 +313,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             midi_rx_msg = realloc(midi_rx_msg,3*sizeof(uint8_t));
             midi_rx_state = MIDI_RX_PAYLOAD;
             uint8_t debug_msg[64] = {0};
-            sprintf((char *)debug_msg,"%d \tNote on received: ", (unsigned int) HAL_GetTick());
+            sprintf((char *)debug_msg,"%d \tNote on received (%08x): ", (unsigned int) HAL_GetTick(),midi_rx_msg[0]);
             debug_log_add(debug_msg,64);
             HAL_UART_Receive_DMA(&huart2, midi_rx_msg + 1, 2);
         }
@@ -333,9 +333,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     else if(midi_rx_state == MIDI_RX_PAYLOAD){
         midi_rx_rdy = 1;
         midi_rx_state = MIDI_RX_IDLE;
-        //auint8_t debug_msg[64] = {0};
-        //sprintf((char *)debug_msg,"%d, velocity %d \r\n", midi_rx_msg[1], midi_rx_msg[2]);
-        //debug_tx(debug_msg,64);
+        uint8_t debug_msg[64] = {0};
+        sprintf((char *)debug_msg,"%08x, velocity %08x \r\n", midi_rx_msg[1], midi_rx_msg[2]);
+        debug_log_add(debug_msg,64);
         if(midi_rx_msg)
         {
             free(midi_rx_msg);
@@ -355,7 +355,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
         midi_tx_rdy = 1;
     }
     else if (huart->Instance == USART3){
-        send_debug_from_buffer();
+            send_debug_from_buffer();
     }
 
 }
