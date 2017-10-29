@@ -47,6 +47,7 @@
 
 #include "stdlib.h"
 #include "debug_uart.h"
+#include "string.h"
 
 uint8_t midi_tx_rdy, midi_rx_rdy, tx3_rdy;
 
@@ -309,12 +310,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (midi_rx_state == MIDI_RX_BYTE_1)
     {
-        if ((midi_rx_msg[0] & 0xF0) == 0x80){
+        if (((midi_rx_msg[0] & 0xF0) == 0x80 ) || ((midi_rx_msg[0] & 0xF0) == 0x90)){
             midi_rx_msg = realloc(midi_rx_msg,3*sizeof(uint8_t));
             midi_rx_state = MIDI_RX_PAYLOAD;
             uint8_t debug_msg[64] = {0};
-            sprintf((char *)debug_msg,"%d \tNote on received (%08x): ", (unsigned int) HAL_GetTick(),midi_rx_msg[0]);
-            debug_log_add(debug_msg,64);
+            sprintf((char *)debug_msg,"Note on/off received (0x%02x).", midi_rx_msg[0]);
+            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
             HAL_UART_Receive_DMA(&huart2, midi_rx_msg + 1, 2);
         }
         else
@@ -334,8 +335,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         midi_rx_rdy = 1;
         midi_rx_state = MIDI_RX_IDLE;
         uint8_t debug_msg[64] = {0};
-        sprintf((char *)debug_msg,"%08x, velocity %08x \r\n", midi_rx_msg[1], midi_rx_msg[2]);
-        debug_log_add(debug_msg,64);
+        sprintf((char *)debug_msg,"Note: 0x%02x, velocity 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
+        debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
         if(midi_rx_msg)
         {
             free(midi_rx_msg);

@@ -20,22 +20,47 @@ uint8_t **log_buffer = {0};
 uint8_t buffer_head;
 uint8_t buffer_tail;
 uint8_t buffer_size;
+uint8_t buffer_header_size = 10;
+
+log_level_t buffer_log_level;
 
 uint8_t tx_rdy;
 
 uint8_t led_stat = 0;
 
-void debug_log_add(uint8_t *message, uint8_t size)
+void debug_log_add(uint8_t *message, uint8_t size, log_level_t log_level)
 {
-    if (inc_position(buffer_head) == buffer_tail)
-    {
+    if (log_level < buffer_log_level) {
+        return;
+    }
+
+    if (!message) {
+        return;
+    }
+
+    if (inc_position(buffer_head) == buffer_tail) {
         /* Buffer full, drop message */
+        return;
     }
-    else
-    {
-        memcpy(log_buffer[buffer_head], message, line_length);
-        buffer_head = inc_position(buffer_head);
+
+    uint8_t copy_size;
+    copy_size = (size > line_length - buffer_header_size) ? line_length - buffer_header_size : size;
+
+    memset(log_buffer[buffer_head], 0, line_length);
+    sprintf((char *) log_buffer[buffer_head],"%8d: ", (unsigned int) HAL_GetTick());
+    memcpy(log_buffer[buffer_head] + buffer_header_size, message, copy_size);
+    if (strlen((char *) log_buffer[buffer_head]) > line_length - 3) {
+        log_buffer[buffer_head][line_length-2] = '\r';
+        log_buffer[buffer_head][line_length-1] = '\n';
+        log_buffer[buffer_head][line_length] = '\0';
     }
+    else {
+        log_buffer[buffer_head][strlen((char *)log_buffer[buffer_head])+1] = '\r';
+        log_buffer[buffer_head][strlen((char *)log_buffer[buffer_head])+2] = '\n';
+        log_buffer[buffer_head][strlen((char *)log_buffer[buffer_head])+3] = '\0';
+    }
+    buffer_head = inc_position(buffer_head);
+
     if (tx_rdy == 1)
     {
         tx_rdy = 0;
@@ -57,10 +82,13 @@ uint8_t inc_position(uint8_t position)
 
 
 
-void init_debug(uint8_t message_size, uint8_t n_buff_elem)
+void init_debug(uint8_t message_size, uint8_t n_buff_elem, log_level_t log_level)
 {
-    log_buffer = malloc(sizeof(*log_buffer) * n_buff_elem);
-    line_length = message_size;
+    if ((message_size <= 1) || (n_buff_elem <= 1)){
+        return;
+    }
+    log_buffer = malloc(sizeof( *log_buffer) * n_buff_elem);
+    line_length = message_size + buffer_header_size + 1;
     for(int8_t i = 0; i < n_buff_elem; i++){
         log_buffer[i] = malloc(sizeof(uint8_t) * line_length);
     }
@@ -69,7 +97,7 @@ void init_debug(uint8_t message_size, uint8_t n_buff_elem)
     buffer_tail = 0;
     tx_rdy = 1;
 
-    led_stat = !led_stat;
+    buffer_log_level = log_level;
 }
 
 void send_debug_from_buffer()

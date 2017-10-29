@@ -103,7 +103,7 @@ int main(void)
   HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
 
-  init_debug(64, 7);
+  init_debug(64, 7, LOG_LEVEL_INFO);
 
   uint8_t current_note = NOTE_C_0;
 
@@ -158,10 +158,8 @@ int main(void)
       {
           _Error_Handler(__FILE__, __LINE__);
       }
-      HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
       while (!get_midi_tx_state());
       while (!wait_done());
-      HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 
   }
   /* USER CODE END 3 */
