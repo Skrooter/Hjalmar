@@ -55,7 +55,7 @@ void MX_TIM6_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = (uint32_t) (42000/2) - 1;
+  htim6.Init.Prescaler = (uint32_t) (SystemCoreClock/8000) - 1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim6.Init.Period = 1;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
@@ -77,7 +77,7 @@ void MX_TIM7_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim7.Instance = TIM7;
-  htim7.Init.Prescaler = (uint32_t) (4200/2) - 1;
+  htim7.Init.Prescaler = (uint32_t) (SystemCoreClock/800) - 1;
   htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim7.Init.Period = 1;
   if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
@@ -177,7 +177,10 @@ uint8_t wait_done(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-    if (htim->Instance == TIM6)
+    if (htim->Instance == TIM7){
+        check_buttons();
+    }
+    else if (htim->Instance == TIM6)
     {
         wait_cnt -= 1;
     }

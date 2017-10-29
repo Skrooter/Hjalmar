@@ -131,10 +131,7 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 
-
-
-
-      note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
+/*      note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
       note.note_number = current_note++;
 
       if(transmit_midi_message((uint8_t *)&note, 4) != HAL_OK){
@@ -160,7 +157,7 @@ int main(void)
           _Error_Handler(__FILE__, __LINE__);
       }
       while (!get_midi_tx_state());
-      while (!wait_done());
+      while (!wait_done());*/
 
   }
   /* USER CODE END 3 */

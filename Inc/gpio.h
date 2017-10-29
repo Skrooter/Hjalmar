@@ -59,6 +59,8 @@
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+uint32_t gpio_read_multiple_pins(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin_mask);
+void check_buttons(void);
 
 /* USER CODE END Prototypes */
 

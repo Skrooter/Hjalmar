@@ -55,9 +55,9 @@ void debug_log_add(uint8_t *message, uint8_t size, log_level_t log_level)
         log_buffer[buffer_head][line_length] = '\0';
     }
     else {
-        log_buffer[buffer_head][strlen((char *)log_buffer[buffer_head])+1] = '\r';
-        log_buffer[buffer_head][strlen((char *)log_buffer[buffer_head])+2] = '\n';
-        log_buffer[buffer_head][strlen((char *)log_buffer[buffer_head])+3] = '\0';
+        log_buffer[buffer_head][strlen((char *)log_buffer[buffer_head])] = '\r';
+        log_buffer[buffer_head][strlen((char *)log_buffer[buffer_head])] = '\n';
+        log_buffer[buffer_head][strlen((char *)log_buffer[buffer_head])] = '\0';
     }
     buffer_head = inc_position(buffer_head);
 
@@ -108,7 +108,7 @@ void send_debug_from_buffer()
     {
         uint8_t prev_tail = buffer_tail;
         buffer_tail = inc_position(buffer_tail);
-        HAL_UART_Transmit_DMA(&huart3, log_buffer[prev_tail], line_length);
+        HAL_UART_Transmit_DMA(&huart3, log_buffer[prev_tail], strlen((char *)log_buffer[prev_tail]));
     }
     else{
         tx_rdy = 1;

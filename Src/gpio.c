@@ -47,7 +47,7 @@
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
 /* USER CODE BEGIN 1 */
-
+GPIO_PinState pin_status;
 /* USER CODE END 1 */
 
 /** Configure pins as 
@@ -126,7 +126,19 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+uint32_t gpio_read_multiple_pins(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin_mask){
+    return (GPIOx->IDR);
+}
 
+
+void check_buttons(void){
+    uint32_t pin_status_new = gpio_read_multiple_pins(GPIOE, GPIO_PIN_All);
+    if (pin_status != pin_status_new){
+        /* Change occured, send send messages*/
+        uint32_t pin_change_mask = pin_status ^ pin_status_new;
+
+    }
+}
 /* USER CODE END 2 */
 
 /**
