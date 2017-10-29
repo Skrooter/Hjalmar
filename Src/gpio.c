@@ -40,14 +40,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
 /* USER CODE BEGIN 0 */
-
+#include "midi_constants.h"
 /* USER CODE END 0 */
 
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
 /* USER CODE BEGIN 1 */
-GPIO_PinState pin_status;
+uint32_t pin_status = 0xFFFF;
 /* USER CODE END 1 */
 
 /** Configure pins as 
@@ -134,9 +134,31 @@ uint32_t gpio_read_multiple_pins(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin_mask){
 void check_buttons(void){
     uint32_t pin_status_new = gpio_read_multiple_pins(GPIOE, GPIO_PIN_All);
     if (pin_status != pin_status_new){
-        /* Change occured, send send messages*/
+        /* Change occurred, send send messages*/
         uint32_t pin_change_mask = pin_status ^ pin_status_new;
+        for (int i = 0; i < 16; i++){
+            if (pin_change_mask & 0x1){
+                send_midi(i, (pin_status_new >> i) & 0x1);
+            }
+            pin_change_mask = pin_change_mask >> 1;
+        }
+    }
+    pin_status = pin_status_new;
+}
 
+void send_midi(midi_note_number note, uint8_t key_down){
+
+    midi_note_cmd_t midi_msg;
+    if (key_down){
+        midi_msg.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
+    }
+    else {
+        midi_msg.cmd_chan = (uint8_t) (NOTE_OFF << 4) | MIDI_CHANNEL_0;
+    }
+    midi_msg.note_number = note;
+    midi_msg.velocity = 0x55;
+    if(transmit_midi_message((uint8_t *)&midi_msg, 3) != HAL_OK){
+        _Error_Handler(__FILE__, __LINE__);
     }
 }
 /* USER CODE END 2 */

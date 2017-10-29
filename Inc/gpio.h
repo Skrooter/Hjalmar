@@ -49,7 +49,8 @@
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "midi_constants.h"
+#include "usart.h"
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
@@ -61,7 +62,7 @@ void MX_GPIO_Init(void);
 /* USER CODE BEGIN Prototypes */
 uint32_t gpio_read_multiple_pins(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin_mask);
 void check_buttons(void);
-
+void send_midi(midi_note_number note, uint8_t key_down);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
