@@ -150,10 +150,10 @@ void send_midi(midi_note_number note, uint8_t key_down){
 
     midi_note_cmd_t midi_msg;
     if (key_down){
-        midi_msg.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
+        midi_msg.cmd_chan = (uint8_t) (MIDI_NOTE_ON << 4) | MIDI_CHANNEL_0;
     }
     else {
-        midi_msg.cmd_chan = (uint8_t) (NOTE_OFF << 4) | MIDI_CHANNEL_0;
+        midi_msg.cmd_chan = (uint8_t) (MIDI_NOTE_OFF << 4) | MIDI_CHANNEL_0;
     }
     midi_msg.note_number = note;
     midi_msg.velocity = 0x55;

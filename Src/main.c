@@ -104,12 +104,12 @@ int main(void)
   HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
 
-  init_debug(64, 7, LOG_LEVEL_INFO);
+  init_debug(64, 127, LOG_LEVEL_INFO);
 
   uint8_t current_note = NOTE_C_0;
 
   midi_note_cmd_t note;
-  note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
+  note.cmd_chan = (uint8_t) (MIDI_NOTE_ON << 4) | MIDI_CHANNEL_0;
   note.note_number = current_note;
   note.velocity = 0x55;
 

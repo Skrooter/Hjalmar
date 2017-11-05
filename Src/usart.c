@@ -48,18 +48,9 @@
 #include "stdlib.h"
 #include "debug_uart.h"
 #include "string.h"
+#include "midi_cmd.h"
 
-uint8_t midi_tx_rdy, midi_rx_rdy, tx3_rdy;
-
-uint8_t *midi_rx_msg;
-uint16_t *midi_rx_size;
-uint8_t midi_rx_state;
-
-enum{
-    MIDI_RX_IDLE    = 0,
-    MIDI_RX_BYTE_1  = 1,
-    MIDI_RX_PAYLOAD = 2
-};
+uint8_t tx3_rdy;
 
 /* USER CODE END 0 */
 
@@ -172,8 +163,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspInit 1 */
-    midi_tx_rdy = 1;
-    midi_rx_rdy = 1;
+    set_midi_tx_state(1);
+    set_midi_rx_state(1);
   /* USER CODE END USART2_MspInit 1 */
   }
   else if(uartHandle->Instance==USART3)
@@ -278,97 +269,22 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 
-HAL_StatusTypeDef transmit_midi_message(uint8_t *message, uint16_t size)
-{
-    midi_tx_rdy = 0;
-    return HAL_UART_Transmit_DMA(&huart2, message, size);
-}
-
-HAL_StatusTypeDef receive_midi_message(uint8_t *message, uint16_t *size)
-{
-    HAL_StatusTypeDef res = HAL_OK;
-    midi_rx_msg = message;
-    midi_rx_size = size;
-
-    res = receive_midi_byte_1();
-    if (res != HAL_OK){
-            return res;
-    }
-
-    return HAL_OK;
-}
-
-HAL_StatusTypeDef receive_midi_byte_1(void)
-{
-    midi_rx_rdy = 0;
-    midi_rx_state = MIDI_RX_BYTE_1;
-    midi_rx_msg = malloc(sizeof(uint8_t));
-    return HAL_UART_Receive_DMA(&huart2, midi_rx_msg, 1);
-}
-
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    if (midi_rx_state == MIDI_RX_BYTE_1)
-    {
-        if (((midi_rx_msg[0] & 0xF0) == 0x80 ) || ((midi_rx_msg[0] & 0xF0) == 0x90)){
-            midi_rx_msg = realloc(midi_rx_msg,3*sizeof(uint8_t));
-            midi_rx_state = MIDI_RX_PAYLOAD;
-            uint8_t debug_msg[64] = {0};
-            sprintf((char *)debug_msg,"Note on/off received (0x%02x).", midi_rx_msg[0]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            HAL_UART_Receive_DMA(&huart2, midi_rx_msg + 1, 2);
-        }
-        else
-        {
-            if(midi_rx_msg)
-            {
-                free(midi_rx_msg);
-                midi_rx_msg = NULL;
-            }
-            if (receive_midi_byte_1() != HAL_OK)
-            {
-                _Error_Handler(__FILE__, __LINE__);
-            }
-        }
-    }
-    else if(midi_rx_state == MIDI_RX_PAYLOAD){
-        midi_rx_rdy = 1;
-        midi_rx_state = MIDI_RX_IDLE;
-        uint8_t debug_msg[64] = {0};
-        sprintf((char *)debug_msg,"Note: 0x%02x, velocity 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
-        debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-        if(midi_rx_msg)
-        {
-            free(midi_rx_msg);
-            midi_rx_msg = NULL;
-        }
-
-        if (receive_midi_byte_1() != HAL_OK)
-        {
-            _Error_Handler(__FILE__, __LINE__);
-        }
+    if (huart->Instance == USART2){
+        handle_midi();
     }
 
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
     if (huart->Instance == USART2){
-        midi_tx_rdy = 1;
+        set_midi_tx_state(1);
     }
     else if (huart->Instance == USART3){
             send_debug_from_buffer();
     }
 
-}
-
-uint8_t get_midi_tx_state (void)
-{
-    return midi_tx_rdy;
-}
-
-uint8_t get_midi_rx_state (void)
-{
-    return midi_rx_rdy;
 }
 
 uint8_t get_tx3_state (void)

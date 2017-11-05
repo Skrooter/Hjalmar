@@ -65,11 +65,6 @@ void MX_USART3_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
-HAL_StatusTypeDef transmit_midi_message(uint8_t *message, uint16_t size);
-HAL_StatusTypeDef receive_midi_message(uint8_t *message, uint16_t *size);
-HAL_StatusTypeDef receive_midi_byte_1(void);
-uint8_t get_midi_tx_state (void);
-uint8_t get_midi_rx_state (void);
 uint8_t get_tx3_state (void);
 
 /* USER CODE END Prototypes */
