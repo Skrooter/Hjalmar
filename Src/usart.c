@@ -282,7 +282,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
         set_midi_tx_state(1);
     }
     else if (huart->Instance == USART3){
-            send_debug_from_buffer();
+        send_debug_from_buffer();
     }
 
 }
