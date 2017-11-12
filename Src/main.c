@@ -127,7 +127,9 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
+      uint32_t pins = read_io_pins();
+      wait_ms(10);
+      while (!wait_done());
 /*      note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
       note.note_number = current_note++;
 

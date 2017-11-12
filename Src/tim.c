@@ -190,7 +190,7 @@ uint8_t wait_done(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM7){
-        check_buttons();
+        //check_buttons(0);
     }
     else if (htim->Instance == TIM6)
     {
