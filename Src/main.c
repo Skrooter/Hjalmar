@@ -44,7 +44,6 @@
 #include "usart.h"
 #include "gpio.h"
 
-
 /* USER CODE BEGIN Includes */
 #include "midi_constants.h"
 #include "io_expander.h"

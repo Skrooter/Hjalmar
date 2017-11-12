@@ -96,6 +96,8 @@
 #define Audio_RST_GPIO_Port GPIOD
 #define OTG_FS_OverCurrent_Pin GPIO_PIN_5
 #define OTG_FS_OverCurrent_GPIO_Port GPIOD
+#define io_expander_int_Pin GPIO_PIN_5
+#define io_expander_int_GPIO_Port GPIOB
 #define C_Pin GPIO_PIN_0
 #define C_GPIO_Port GPIOE
 #define Db_Pin GPIO_PIN_1
