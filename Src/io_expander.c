@@ -33,12 +33,11 @@ void init_io_expander(void){
     }
 }
 
-uint32_t Read_io_pins(void){
+uint32_t read_io_pins(void){
     uint32_t pinvalues;
     uint8_t io_read;
     HAL_StatusTypeDef HAL_error;
-    while (i2c_handle->State != HAL_I2C_STATE_READY);
-    if ((HAL_error =  HAL_I2C_Mem_Read_DMA(i2c_handle,device_addr, 0x09, 0x1, &io_read, 1)) != HAL_OK){
+    if ((HAL_error =  HAL_I2C_Mem_Read(i2c_handle,device_addr, 0x09, 0x1, &io_read, 1,1000)) == HAL_ERROR){
         _Error_Handler(__FILE__, __LINE__);
     }
 

@@ -138,6 +138,7 @@ uint32_t gpio_read_multiple_pins(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin_mask){
 
 
 void check_buttons(uint32_t pin_status_new){
+    pin_status_new = read_io_pins();
     if (pin_status != pin_status_new){
         /* Change occurred, send send messages*/
         uint32_t pin_change_mask = pin_status ^ pin_status_new;
