@@ -40,6 +40,7 @@
 #include "stm32f4xx_hal.h"
 #include "dma.h"
 #include "i2c.h"
+#include "i2s.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -101,6 +102,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM7_Init();
   MX_I2C1_Init();
+  MX_I2S3_Init();
 
   /* USER CODE BEGIN 2 */
   init_io_expander();
@@ -170,6 +172,7 @@ void SystemClock_Config(void)
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
 
     /**Configure the main internal regulator output voltage 
     */
@@ -202,6 +205,14 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S;
+  PeriphClkInitStruct.PLLI2S.PLLI2SN = 192;
+  PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
