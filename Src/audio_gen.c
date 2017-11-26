@@ -22,7 +22,7 @@ void audio_gen_sqr_start(float freq, uint8_t level)
 {
     I2S_HandleTypeDef *i2s_handle = get_i2s_handle();
     sample_per_sec = i2s_handle->Init.AudioFreq;
-    wave_type = WAVE_SQUARE;
+    wave_type = WAVE_SAW;
     wave_period = sample_per_sec / freq;
     sample_position = 0;
     last_value = (INT16_MIN / (128 - level))+1;
@@ -43,6 +43,17 @@ uint16_t *fetch_next_audio_buffer(void)
                 sample_position++;
             }
             buffer[i] = last_value;
+        }
+        break;
+    case WAVE_SAW:
+        for(int i = 0; i < AUDIO_BUFFER_SIZE; i++){
+            if (sample_position >= (wave_period / 2)){
+                sample_position = 0;
+            }
+            else{
+                sample_position++;
+            }
+            buffer[i] = sample_position;
         }
         break;
     default:

@@ -137,7 +137,7 @@ void send_audio(void){
         audio_buffer_0 = NULL;
     }
     audio_buffer_0 = audio_buffer_1;
-    if (HAL_I2S_Transmit_DMA(i2s_handle, audio_buffer_0, AUDIO_BUFFER_SIZE/2) != HAL_OK){
+    if (HAL_I2S_Transmit_DMA(i2s_handle, audio_buffer_0, AUDIO_BUFFER_SIZE) != HAL_OK){
         _Error_Handler(__FILE__, __LINE__);
     }
     audio_buffer_1 = fetch_next_audio_buffer();

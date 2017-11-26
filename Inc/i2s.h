@@ -51,6 +51,8 @@
 
 /* USER CODE END Includes */
 
+extern I2S_HandleTypeDef hi2s3;
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
