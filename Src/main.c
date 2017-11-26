@@ -50,6 +50,10 @@
 #include "io_expander.h"
 #include "midi_cmd.h"
 #include "debug_uart.h"
+#include "stdlib.h"
+#include "audio_interface.h"
+
+#define AUDIO_BUFFER_SIZE 2048
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -64,7 +68,7 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+uint16_t *audio_buffer;
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -106,9 +110,16 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
   init_io_expander();
+  init_audio_output();
   HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
+
+  audio_buffer = calloc(sizeof(uint16_t),AUDIO_BUFFER_SIZE);
+
+  for(int i = 0; i < AUDIO_BUFFER_SIZE; i+=3){
+      audio_buffer[i] = 0xAAAA;
+  }
 
   init_debug(64, 127, LOG_LEVEL_INFO);
 
@@ -120,6 +131,7 @@ int main(void)
       _Error_Handler(__FILE__, __LINE__);
   }
 
+  HAL_I2S_Transmit_DMA(&hi2s3, audio_buffer, AUDIO_BUFFER_SIZE);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -290,5 +302,7 @@ void assert_failed(uint8_t* file, uint32_t line)
 /**
   * @}
 */ 
-
+void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s){
+    HAL_I2S_Transmit_DMA(&hi2s3,audio_buffer,AUDIO_BUFFER_SIZE);
+}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
