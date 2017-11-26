@@ -52,8 +52,8 @@
 #include "debug_uart.h"
 #include "stdlib.h"
 #include "audio_interface.h"
+#include "audio_gen.h"
 
-#define AUDIO_BUFFER_SIZE 2048
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -68,7 +68,7 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-uint16_t *audio_buffer;
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -115,12 +115,6 @@ int main(void)
   HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
 
-  audio_buffer = calloc(sizeof(uint16_t),AUDIO_BUFFER_SIZE);
-
-  for(int i = 0; i < AUDIO_BUFFER_SIZE; i+=3){
-      audio_buffer[i] = 0xAAAA;
-  }
-
   init_debug(64, 127, LOG_LEVEL_INFO);
 
   uint8_t *midi_message= {0};
@@ -130,8 +124,7 @@ int main(void)
   {
       _Error_Handler(__FILE__, __LINE__);
   }
-
-  HAL_I2S_Transmit_DMA(&hi2s3, audio_buffer, AUDIO_BUFFER_SIZE);
+  audio_gen_sqr_start(440.0, 127);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -144,6 +137,7 @@ int main(void)
       uint32_t pins = read_io_pins();
       wait_ms(10);
       while (!wait_done());
+
 /*      note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
       note.note_number = current_note++;
 
@@ -302,7 +296,5 @@ void assert_failed(uint8_t* file, uint32_t line)
 /**
   * @}
 */ 
-void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s){
-    HAL_I2S_Transmit_DMA(&hi2s3,audio_buffer,AUDIO_BUFFER_SIZE);
-}
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

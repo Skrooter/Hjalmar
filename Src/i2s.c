@@ -44,7 +44,7 @@
 #include "dma.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "audio_interface.h"
 /* USER CODE END 0 */
 
 I2S_HandleTypeDef hi2s3;
@@ -57,7 +57,7 @@ void MX_I2S3_Init(void)
   hi2s3.Instance = SPI3;
   hi2s3.Init.Mode = I2S_MODE_MASTER_TX;
   hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s3.Init.DataFormat = I2S_DATAFORMAT_16B;
+  hi2s3.Init.DataFormat = I2S_DATAFORMAT_16B_EXTENDED;
   hi2s3.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE;
   hi2s3.Init.AudioFreq = I2S_AUDIOFREQ_44K;
   hi2s3.Init.CPOL = I2S_CPOL_LOW;
@@ -163,7 +163,14 @@ void HAL_I2S_MspDeInit(I2S_HandleTypeDef* i2sHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+I2S_HandleTypeDef *get_i2s_handle(void){
+    return &hi2s3;
+}
 
+void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s){
+    send_audio();
+    //HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t *) audio_buffer, AUDIO_BUFFER_SIZE);
+}
 /* USER CODE END 1 */
 
 /**

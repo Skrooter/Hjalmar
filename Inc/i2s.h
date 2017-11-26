@@ -51,8 +51,6 @@
 
 /* USER CODE END Includes */
 
-extern I2S_HandleTypeDef hi2s3;
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -62,7 +60,7 @@ extern void _Error_Handler(char *, int);
 void MX_I2S3_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+I2S_HandleTypeDef *get_i2s_handle(void);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
