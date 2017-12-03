@@ -13,6 +13,7 @@ const uint16_t device_addr = 0b01000000;
 I2C_HandleTypeDef *i2c_handle;
 
 void init_io_expander(void){
+    return;
     i2c_handle = get_i2c_handle();
     uint8_t config_data = 0xFF;
     HAL_StatusTypeDef HAL_error;
@@ -34,6 +35,7 @@ void init_io_expander(void){
 }
 
 uint32_t read_io_pins(void){
+    return 0;
     uint32_t pinvalues;
     uint8_t io_read;
     HAL_StatusTypeDef HAL_error;

@@ -44,7 +44,7 @@ void init_audio_output(){
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    config_data = 0b00000111;
+    config_data = 0b00000100;
     if ((HAL_error = HAL_I2C_Mem_Write(i2c_handle,device_addr, 0x06, 0x1, &config_data, 1, 1000)) != HAL_OK){
         _Error_Handler(__FILE__, __LINE__);
     }
@@ -69,12 +69,12 @@ void init_audio_output(){
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    config_data = 0b01100000;
+    config_data = 0b11100000;
     if ((HAL_error = HAL_I2C_Mem_Write(i2c_handle,device_addr, 0x0D, 0x1, &config_data, 1, 1000)) != HAL_OK){
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    config_data = 0b00000011;
+    config_data = 0b00000111;
     if ((HAL_error = HAL_I2C_Mem_Write(i2c_handle,device_addr, 0x0E, 0x1, &config_data, 1, 1000)) != HAL_OK){
         _Error_Handler(__FILE__, __LINE__);
     }
@@ -94,7 +94,7 @@ void init_audio_output(){
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    config_data = 0b00001111;
+
 /*    if ((HAL_error = HAL_I2C_Mem_Write(i2c_handle,device_addr, 0x1C, 0x1, &config_data, 1, 1000)) != HAL_OK){
         _Error_Handler(__FILE__, __LINE__);
     }
@@ -106,6 +106,15 @@ void init_audio_output(){
 
     config_data = 0b11000000;
     if ((HAL_error = HAL_I2C_Mem_Write(i2c_handle,device_addr, 0x1E, 0x1, &config_data, 1, 1000)) != HAL_OK){
+        _Error_Handler(__FILE__, __LINE__);
+    }*/
+
+    /*config_data = 0b00011000;
+    if ((HAL_error = HAL_I2C_Mem_Read(i2c_handle,device_addr, 0x20, 0x1, &config_data, 1, 1000)) != HAL_OK){
+        _Error_Handler(__FILE__, __LINE__);
+    }
+    config_data = 0b00011000;
+    if ((HAL_error = HAL_I2C_Mem_Read(i2c_handle,device_addr, 0x21, 0x1, &config_data, 1, 1000)) != HAL_OK){
         _Error_Handler(__FILE__, __LINE__);
     }*/
 
