@@ -12,6 +12,7 @@ typedef enum {
     WAVE_NONE,
     WAVE_SQUARE,
     WAVE_SAW,
+    WAVE_PULSE,
     WAVE_TRIANGLE,
     WAVE_SINE
 } audio_wave_type_t;
