@@ -16,7 +16,7 @@
 
 I2C_HandleTypeDef *i2c_handle;
 I2S_HandleTypeDef *i2s_handle;
-uint16_t *audio_buffer_0, *audio_buffer_1;
+uint16_t *audio_buffer_0, *audio_buffer_1 = NULL;
 uint8_t next_audio_buffer = 0;
 
 
@@ -55,6 +55,11 @@ void init_audio_output(){
     }
 
     config_data = 0b00000000;
+    if ((HAL_error = HAL_I2C_Mem_Write(i2c_handle,device_addr, 0x08, 0x1, &config_data, 1, 1000)) != HAL_OK){
+        _Error_Handler(__FILE__, __LINE__);
+    }
+
+    config_data = 0b00000000;
     if ((HAL_error = HAL_I2C_Mem_Write(i2c_handle,device_addr, 0x09, 0x1, &config_data, 1, 1000)) != HAL_OK){
         _Error_Handler(__FILE__, __LINE__);
     }
@@ -69,12 +74,12 @@ void init_audio_output(){
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    config_data = 0b11100000;
+    config_data = 0b01110000;
     if ((HAL_error = HAL_I2C_Mem_Write(i2c_handle,device_addr, 0x0D, 0x1, &config_data, 1, 1000)) != HAL_OK){
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    config_data = 0b00000111;
+    config_data = 0b00000100;
     if ((HAL_error = HAL_I2C_Mem_Write(i2c_handle,device_addr, 0x0E, 0x1, &config_data, 1, 1000)) != HAL_OK){
         _Error_Handler(__FILE__, __LINE__);
     }
@@ -125,8 +130,8 @@ void init_audio_output(){
         _Error_Handler(__FILE__, __LINE__);
     }
     i2s_handle = get_i2s_handle();
-    audio_buffer_0 = calloc(sizeof(int16_t), AUDIO_BUFFER_SIZE);
-    audio_buffer_1 = calloc(sizeof(int16_t), AUDIO_BUFFER_SIZE);
+    //audio_buffer_0 = calloc(sizeof(int16_t), AUDIO_BUFFER_SIZE);
+    audio_buffer_1 = fetch_next_audio_buffer();
     send_audio();
 }
 
@@ -146,9 +151,11 @@ void send_audio(void){
         audio_buffer_0 = NULL;
     }
     audio_buffer_0 = audio_buffer_1;
+    audio_buffer_1 = NULL; // data will be freed by audio_buffer_0
     if (HAL_I2S_Transmit_DMA(i2s_handle, audio_buffer_0, AUDIO_BUFFER_SIZE) != HAL_OK){
         _Error_Handler(__FILE__, __LINE__);
     }
+
     audio_buffer_1 = fetch_next_audio_buffer();
 
 }

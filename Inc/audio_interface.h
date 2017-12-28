@@ -8,7 +8,7 @@
 #ifndef INC_AUDIO_INTERFACE_H_
 #define INC_AUDIO_INTERFACE_H_
 
-#define AUDIO_BUFFER_SIZE 32
+#define AUDIO_BUFFER_SIZE 128
 
 void init_audio_output(void);
 //void add_to_audio_buffer(int16_t *audio_buffer, uint32_t buf_len);
