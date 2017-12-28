@@ -15,7 +15,7 @@ static unsigned int q_index = 0;
 
 int work_queue_add(work_item_t work_item, void *data)
 {
-    if (work_item != NULL) {
+    if (work_item == NULL) {
         return HJALMAR_INVALID_ARGUMENT;
     }
 

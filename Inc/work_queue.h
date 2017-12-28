@@ -2,7 +2,7 @@
 #ifndef WORK_QUEUE_H_
 #define WORK_QUEUE_H_
 
-#define WORK_QUEUE_SIZE 5
+#define WORK_QUEUE_SIZE 8
 
 typedef void (*work_item_t)(void *data);
 
