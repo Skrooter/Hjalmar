@@ -44,8 +44,8 @@ uint16_t *fetch_next_audio_buffer(void)
     case WAVE_SQUARE:
         for(int i = 0; i < AUDIO_BUFFER_SIZE; i += 2){
             if (sample_position >= (wave_period / 2)){
-                buffer[i] = 0xFF00;
-                buffer[i + 1] = 0xFF00;
+                buffer[i] = 0x7F;
+                buffer[i + 1] = 0x7F;
                 if (sample_position >= wave_period) {
                     sample_position = 0;
                     SQ_MAX++;
@@ -56,8 +56,8 @@ uint16_t *fetch_next_audio_buffer(void)
             }
             else{
                 sample_position++;
-                buffer[i] = 0x00;
-                buffer[i + 1] = 0x0;
+                buffer[i] = 0x80;
+                buffer[i + 1] = 0x80;
             }
 
         }
@@ -70,7 +70,7 @@ uint16_t *fetch_next_audio_buffer(void)
             else{
                 sample_position++;
             }
-            buffer[i] = sample_position;       // Right
+            buffer[i] = (int16_t)sample_position;       // Right
             buffer[i + 1] = (int16_t)sample_position;   // Left
         }
         break;
