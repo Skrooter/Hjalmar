@@ -16,8 +16,9 @@ int work_queue_add(work_item_t work_item, void *data)
     if ((q_items < WORK_QUEUE_SIZE) &&
         (work_item != NULL))
     {
-        queue[q_index].work_item = work_item;
-        queue[q_index].data = data;
+        int i = (q_index + q_items) % WORK_QUEUE_SIZE;
+        queue[i].work_item = work_item;
+        queue[i].data = data;
 
         q_items++;
 
@@ -37,13 +38,8 @@ void work_queue_process(void)
         queue[q_index].work_item = NULL;
         queue[q_index].data = NULL;
 
-        q_index++;
+        q_index = (q_index + 1) % WORK_QUEUE_SIZE;
         q_items--;
-
-        if (q_index >= WORK_QUEUE_SIZE)
-        {
-            q_index = 0;
-        }
     }
 }
 
