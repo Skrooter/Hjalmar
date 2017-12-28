@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
+
 #include "work_queue.h"
+#include "error_codes.h"
 
 typedef struct {
     work_item_t work_item;
@@ -13,25 +15,26 @@ static unsigned int q_index = 0;
 
 int work_queue_add(work_item_t work_item, void *data)
 {
-    if ((q_items < WORK_QUEUE_SIZE) &&
-        (work_item != NULL))
-    {
+    if (work_item != NULL) {
+        return HJALMAR_INVALID_ARGUMENT;
+    }
+
+    if (q_items < WORK_QUEUE_SIZE) {
         queue[q_index].work_item = work_item;
         queue[q_index].data = data;
 
         q_items++;
 
-        return 0;
+        return HJALMAR_OK;
     }
 
-    return -1;
+    return HJALMAR_QUEUE_FULL;
 }
 
 void work_queue_process(void)
 {
-    if ((q_items != 0) &&
-        (queue[q_index].work_item != NULL))
-    {
+    if ((q_items != 0) && (queue[q_index].work_item != NULL)) {
+
         queue[q_index].work_item(queue[q_index].data);
 
         queue[q_index].work_item = NULL;
@@ -40,8 +43,7 @@ void work_queue_process(void)
         q_index++;
         q_items--;
 
-        if (q_index >= WORK_QUEUE_SIZE)
-        {
+        if (q_index >= WORK_QUEUE_SIZE) {
             q_index = 0;
         }
     }

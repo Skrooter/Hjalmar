@@ -156,14 +156,16 @@ vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 $(OBJ_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(OBJ_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
-	@echo $< $@
+	@echo $@
 
 $(OBJ_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
-	$(AS) -c $(CFLAGS) $< -o $@
+	@$(AS) -c $(CFLAGS) $< -o $@
+	@echo $@
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
-	$(SZ) $@
+	@$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
+	@echo $@
+	@$(SZ) $@
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(HEX) $< $@
