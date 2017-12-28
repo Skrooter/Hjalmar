@@ -50,6 +50,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
 /* USER CODE BEGIN 0 */
+#include "io_expander.h"
+#include "midi_cmd.h"
 #include "midi_constants.h"
 /* USER CODE END 0 */
 

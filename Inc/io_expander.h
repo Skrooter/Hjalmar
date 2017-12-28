@@ -10,6 +10,6 @@
 
 void init_io_expander(void);
 
-
+uint32_t read_io_pins(void);
 
 #endif /* INC_IO_EXPANDER_H_ */
