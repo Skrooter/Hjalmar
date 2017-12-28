@@ -13,6 +13,10 @@
 #include "i2s.h"
 #include "math.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 uint32_t sample_per_sec;
 audio_wave_type_t wave_type = WAVE_NONE;
 uint32_t wave_period;
