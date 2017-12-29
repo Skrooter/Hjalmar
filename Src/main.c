@@ -152,7 +152,7 @@ int main(void)
   uint8_t *midi_message= {0};
   uint16_t midi_message_size = 0;
 
-    if (receive_midi_message( midi_message, &midi_message_size) != HAL_OK)
+    if (start_midi_receive( midi_message, &midi_message_size) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
