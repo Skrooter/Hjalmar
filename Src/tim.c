@@ -49,6 +49,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "tim.h"
+#include "audio_gen.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -197,9 +198,15 @@ uint8_t wait_done(void)
     return (wait_cnt == 0);
 }
 
+uint8_t temp_var = 0;
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM7){
+        if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_SET) {
+            audio_gen_wave_start(220, 127, temp_var);
+            temp_var = (temp_var + 1) % 5;
+        }
         //check_buttons(0);
     }
     else if (htim->Instance == TIM6)

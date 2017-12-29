@@ -109,54 +109,54 @@ void HAL_SYSTICK_Callback(void)
 int main(void)
 {
 
-  /* USER CODE BEGIN 1 */
+    /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+    /* USER CODE END 1 */
 
-  /* MCU Configuration----------------------------------------------------------*/
+    /* MCU Configuration----------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init();
 
-  /* USER CODE BEGIN Init */
+    /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+    /* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+    /* Configure the system clock */
+    SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+    /* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+    /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_I2C1_Init();
-  MX_I2S3_Init();
-  MX_TIM6_Init();
-  MX_TIM7_Init();
-  MX_USART2_UART_Init();
-  MX_USART3_UART_Init();
-  MX_USB_DEVICE_Init();
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_DMA_Init();
+    MX_I2C1_Init();
+    MX_I2S3_Init();
+    MX_TIM6_Init();
+    MX_TIM7_Init();
+    MX_USART2_UART_Init();
+    MX_USART3_UART_Init();
+    MX_USB_DEVICE_Init();
 
-  /* USER CODE BEGIN 2 */
-  //init_io_expander();
-  init_audio_output();
-  HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
+    /* USER CODE BEGIN 2 */
+    //init_io_expander();
+    init_audio_output();
+    HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
 
-  init_debug(64, 127, LOG_LEVEL_INFO);
+    init_debug(64, 127, LOG_LEVEL_INFO);
 
-  uint8_t *midi_message= {0};
-  uint16_t midi_message_size = 0;
+    uint8_t *midi_message= {0};
+    uint16_t midi_message_size = 0;
 
     if (start_midi_receive() != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
-    audio_gen_sqr_start(440.0, 127);
+    audio_gen_wave_start(440.0, 63, WAVE_TRIANGLE);
   /* USER CODE END 2 */
 
   /* Infinite loop */
