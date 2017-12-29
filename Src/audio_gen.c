@@ -31,24 +31,21 @@ void audio_gen_sqr_start(float freq, uint8_t level)
     I2S_HandleTypeDef *i2s_handle = get_i2s_handle();
     sample_per_sec = i2s_handle->Init.AudioFreq;
     wave_type = WAVE_SQUARE;
-    wave_period = 44;//sample_per_sec / freq;
+    wave_period = 44; //sample_per_sec / freq;
     sample_position = 0;
     last_value = (INT16_MIN / (128 - level))+1;
 
 }
 
-uint16_t *fetch_next_audio_buffer(void)
+void fetch_next_audio_buffer(uint16_t *audio_samples, uint16_t n_sample)
 {
-    int16_t *buffer = calloc(sizeof(int16_t), AUDIO_BUFFER_SIZE);
     switch (wave_type){
     case WAVE_SQUARE:
-        for(int i = 0; i < AUDIO_BUFFER_SIZE; i += 2){
+        for(int i = 0; i < n_sample; i++){
             if (sample_position >= (wave_period / 2)){
-                buffer[i] = 0x7F00;
-                buffer[i + 1] = 0x7F00;
+                audio_samples[i] = 0x7F00;
                 if (sample_position >= wave_period) {
                     sample_position = 0;
-                    SQ_MAX++;
                 }
                 else {
                     sample_position++;
@@ -56,27 +53,25 @@ uint16_t *fetch_next_audio_buffer(void)
             }
             else{
                 sample_position++;
-                buffer[i] = 0x8000;
-                buffer[i + 1] = 0x8000;
+                audio_samples[i] = 0x8000;
             }
 
         }
         break;
     case WAVE_SAW:
-        for(int i = 0; i < AUDIO_BUFFER_SIZE; i += 2) {
-            if (sample_position >= 0xFF){
+        for(int i = 0; i < n_sample; i++) {
+            if (sample_position >= 0xFFFF){
                 sample_position = 0;
             }
             else{
                 sample_position++;
             }
-            buffer[i] = (int16_t)sample_position;       // Right
-            buffer[i + 1] = (int16_t)sample_position;   // Left
+            audio_samples[i] = (int16_t)sample_position;
         }
         break;
 
     case WAVE_PULSE:
-        for(int i = 0; i < AUDIO_BUFFER_SIZE; i++) {
+        for(int i = 0; i < n_sample; i++) {
             if(i % 2 == 0) {
                 continue;
             }
@@ -88,16 +83,16 @@ uint16_t *fetch_next_audio_buffer(void)
             }
 
             if (i == pulse_pos) {
-                buffer[i] = 0xF;
+                audio_samples[i] = 0xF;
             }
             else {
-                buffer[i] = 0;
+                audio_samples[i] = 0;
             }
         }
         break;
 
     case WAVE_SINE:
-        for(int i = 0; i < AUDIO_BUFFER_SIZE; i++) {
+        for(int i = 0; i < n_sample; i++) {
             if (sample_position >= wave_period){
                 sample_position = 0;
             }
@@ -105,12 +100,13 @@ uint16_t *fetch_next_audio_buffer(void)
                 sample_position++;
             }
 
-            buffer[i] = (int16_t) 0xFF * sin(2 * M_PI * sample_position / wave_period);
+            audio_samples[i] = (int16_t) 0xFF * sin(2 * M_PI * sample_position / wave_period);
         }
         break;
 
     default:
         break;
     }
-    return (uint16_t *)buffer;
+
+    return;
 }

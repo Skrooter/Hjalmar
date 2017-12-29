@@ -16,15 +16,22 @@
 
 I2C_HandleTypeDef *i2c_handle;
 I2S_HandleTypeDef *i2s_handle;
-uint16_t *audio_buffer_0, *audio_buffer_1 = NULL;
+uint16_t *audio_buffer_0, *audio_buffer_1, *gen_buffer = NULL;
 uint8_t next_audio_buffer = 0;
 
+typedef enum next_buffer_enum {
+    BUFFER_0_NEXT,
+    BUFFER_1_NEXT
+} next_buffer_t;
+
+next_buffer_t next_buffer = BUFFER_0_NEXT;
 
 /*for(int i = 0; i < AUDIO_BUFFER_SIZE; i+=2){
     audio_buffer[i] = INT16_MAX*i/AUDIO_BUFFER_SIZE;
 }*/
 
-void init_audio_output(){
+void init_audio_output(void)
+{
     const uint16_t device_addr = 0b10010100;
 
     i2c_handle = get_i2c_handle();
@@ -130,8 +137,13 @@ void init_audio_output(){
         _Error_Handler(__FILE__, __LINE__);
     }
     i2s_handle = get_i2s_handle();
-    //audio_buffer_0 = calloc(sizeof(int16_t), AUDIO_BUFFER_SIZE);
-    audio_buffer_1 = fetch_next_audio_buffer();
+    audio_buffer_0 = calloc(sizeof(int16_t), AUDIO_BUFFER_SIZE);
+    audio_buffer_1 = calloc(sizeof(int16_t), AUDIO_BUFFER_SIZE);
+    gen_buffer = calloc(sizeof(int16_t), GEN_BUFFER_SIZE);
+
+    fetch_next_audio_buffer(gen_buffer, AUDIO_BUFFER_SIZE);
+    mono_to_stereo(audio_buffer_0, gen_buffer, AUDIO_BUFFER_SIZE);
+
     send_audio();
 }
 
@@ -145,18 +157,32 @@ void init_audio_output(){
     }
 }*/
 
-void send_audio(void){
-    if(audio_buffer_0){
-        free(audio_buffer_0);
-        audio_buffer_0 = NULL;
+void mono_to_stereo (uint16_t *stereo_samples, uint16_t *mono_samples, uint16_t n_sample_mono)
+{
+    for(uint32_t i = 0; i < n_sample_mono; i++) {
+        stereo_samples[2 * i] = mono_samples[i];
+        stereo_samples[(2 * i) + 1] = mono_samples[i];
     }
-    audio_buffer_0 = audio_buffer_1;
-    audio_buffer_1 = NULL; // data will be freed by audio_buffer_0
-    if (HAL_I2S_Transmit_DMA(i2s_handle, audio_buffer_0, AUDIO_BUFFER_SIZE) != HAL_OK){
-        _Error_Handler(__FILE__, __LINE__);
-    }
+}
 
-    audio_buffer_1 = fetch_next_audio_buffer();
+void send_audio(void)
+{
+    if (next_buffer == BUFFER_0_NEXT) {
+        if (HAL_I2S_Transmit_DMA(i2s_handle, audio_buffer_0, AUDIO_BUFFER_SIZE) != HAL_OK){
+            _Error_Handler(__FILE__, __LINE__);
+        }
+        fetch_next_audio_buffer(gen_buffer, GEN_BUFFER_SIZE);
+        mono_to_stereo(audio_buffer_1, gen_buffer, GEN_BUFFER_SIZE);
+        next_buffer = BUFFER_1_NEXT;
+    }
+    else {
+        if (HAL_I2S_Transmit_DMA(i2s_handle, audio_buffer_1, AUDIO_BUFFER_SIZE) != HAL_OK){
+            _Error_Handler(__FILE__, __LINE__);
+        }
+        fetch_next_audio_buffer(gen_buffer, GEN_BUFFER_SIZE);
+        mono_to_stereo(audio_buffer_0, gen_buffer, GEN_BUFFER_SIZE);
+        next_buffer = BUFFER_0_NEXT;
+    }
 
 }
 

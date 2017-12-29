@@ -18,6 +18,6 @@ typedef enum {
 } audio_wave_type_t;
 
 void audio_gen_sqr_start(float freq, uint8_t level);
-uint16_t *fetch_next_audio_buffer(void);
+void fetch_next_audio_buffer(uint16_t *audio_samples, uint16_t n_sample);
 
 #endif /* INC_AUDIO_GEN_H_ */
