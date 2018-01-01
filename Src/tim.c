@@ -204,8 +204,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM7){
         if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_SET) {
-            audio_gen_wave_start(220, 127, temp_var);
-            temp_var = (temp_var + 1) % 5;
+            audio_gen_wave_form(temp_var);
+            temp_var = (temp_var + 1) % 6;
         }
         //check_buttons(0);
     }

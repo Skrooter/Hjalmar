@@ -156,7 +156,7 @@ int main(void)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
-    audio_gen_wave_start(440.0, 63, WAVE_SQUARE);
+    audio_gen_wave_start(440.0, 63);
   /* USER CODE END 2 */
 
   /* Infinite loop */
