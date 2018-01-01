@@ -149,14 +149,12 @@ int main(void)
 
     init_debug(64, 127, LOG_LEVEL_INFO);
 
-    uint8_t *midi_message= {0};
-    uint16_t midi_message_size = 0;
-
     if (start_midi_receive() != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
-    audio_gen_wave_start(440.0, 63);
+    audio_gen_wave_form(WAVE_PULSE);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
