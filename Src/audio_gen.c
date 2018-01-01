@@ -20,7 +20,7 @@
 uint32_t sample_per_sec;
 audio_wave_type_t active_wave_type = WAVE_NONE;
 uint32_t wave_period;
-uint32_t sample_position;
+uint32_t sample_position = 0;
 int16_t wave_max_amplitude, wave_min_amplitude;
 int16_t SQ_MAX = 0;
 
@@ -32,10 +32,14 @@ void audio_gen_wave_start(float freq, uint8_t level, audio_wave_type_t wave_type
     sample_per_sec = i2s_handle->Init.AudioFreq;
     active_wave_type = wave_type;
     wave_period = sample_per_sec / freq;
-    sample_position = 0;
+    //sample_position = 0;
     wave_max_amplitude = GEN_MAX_AMPLITUDE * level;
     wave_min_amplitude = GEN_MIN_AMPLITUDE * level;
+}
 
+void audio_gen_wave_stop(void)
+{
+    active_wave_type = WAVE_NONE;
 }
 
 void fetch_next_audio_buffer(uint16_t *audio_samples, uint16_t n_sample)
@@ -121,6 +125,10 @@ void fetch_next_audio_buffer(uint16_t *audio_samples, uint16_t n_sample)
         break;
 
     default:
+        for(int i = 0; i < n_sample; i++) {
+            audio_samples[i] = 0;
+        }
+        sample_position = 0;
         break;
     }
 

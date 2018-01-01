@@ -19,7 +19,7 @@ typedef enum {
     MIDI_SYSTEM                  = 0xF
 } midi_message_type_t;
 
-typedef enum{
+typedef enum {
     OCTAVE_O            = 0,
     OCTAVE_1            = 12,
     OCTAVE_2            = 24,
@@ -46,9 +46,9 @@ typedef enum{
     NOTE_A              = 9,
     NOTE_BB             = 10,
     NOTE_B              = 11
-} note_offset;
+} note_offset_t;
 
-typedef enum{
+typedef enum {
     NOTE_C_0            = OCTAVE_O + NOTE_C,
     NOTE_DB_0           = OCTAVE_O + NOTE_DB,
     NOTE_D_0            = OCTAVE_O + NOTE_D,
@@ -177,9 +177,9 @@ typedef enum{
     NOTE_F_10           = OCTAVE_1O + NOTE_F,
     NOTE_GB_10          = OCTAVE_1O + NOTE_GB,
     NOTE_G_10           = OCTAVE_1O + NOTE_G
-} midi_note_number;
+} midi_note_number_t;
 
-typedef enum{
+typedef enum {
     MIDI_CHANNEL_0      = 0,
     MIDI_CHANNEL_1      = 1,
     MIDI_CHANNEL_2      = 2,
@@ -206,33 +206,33 @@ typedef struct midi_note_cmd{
     uint8_t             dummy;
 } midi_note_cmd_t;
 
-typedef struct midi_poly_pressure{
+typedef struct midi_poly_pressure {
     midi_message_type_t        command;
     midi_channel        channel;
-    midi_note_number    note_number;
+    midi_note_number_t    note_number;
     uint8_t             pressure;
 } midi_poly_pressure_t;
 
-typedef struct midi_control_change{
+typedef struct midi_control_change {
     midi_message_type_t        command;
     midi_channel        channel;
     uint8_t             controller_number;
     uint8_t             control_change_value;
 } midi_control_change_t;
 
-typedef struct midi_program_change{
+typedef struct midi_program_change {
     midi_message_type_t        command;
     midi_channel        channel;
     uint8_t             program_number;
 } midi_program_change_t;
 
-typedef struct midi_channel_pressure{
+typedef struct midi_channel_pressure {
     midi_message_type_t        command;
     midi_channel        channel;
     uint8_t             pressure;
 } midi_channel_pressure_t;
 
-typedef struct midi_pitch_bend{
+typedef struct midi_pitch_bend {
     midi_message_type_t        command;
     midi_channel        channel;
     uint16_t            pitch_bend;

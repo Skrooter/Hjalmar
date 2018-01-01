@@ -164,7 +164,7 @@ void check_buttons(uint32_t pin_status_new){
     pin_status = pin_status_new;
 }
 
-void send_midi(midi_note_number note, uint8_t key_down){
+void send_midi(midi_note_number_t note, uint8_t key_down){
 
     midi_note_cmd_t midi_msg;
     if (key_down){
