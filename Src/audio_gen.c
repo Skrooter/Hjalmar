@@ -10,6 +10,7 @@
 
 #include "audio_gen.h"
 #include "audio_interface.h"
+#include "envelope.h"
 #include "i2s.h"
 #include "math.h"
 
@@ -37,6 +38,7 @@ void audio_gen_wave_start(float freq, float level)
     wave_amplitude = level;
     wave_state = 0;
     pulse_duty_cycle = 0.05;
+    start_envelope();
 
     mute_output = 0;
     return;
@@ -52,12 +54,14 @@ void audio_gen_wave_form(audio_wave_type_t wave_type)
 
 void audio_gen_wave_stop(void)
 {
-    mute_output = 1;
+    start_release();
+//    mute_output = 1;
     return;
 }
 
 void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample)
 {
+    mute_output = get_release_done();
     if (mute_output == 1) {
         for(int i = 0; i < n_sample; i++) {
             audio_samples[i] = 0;
@@ -292,5 +296,8 @@ void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample)
             break;
         }
     }
+
+    get_sample_envelope(audio_samples, n_sample);
+
     return;
 }

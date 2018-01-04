@@ -13,6 +13,7 @@
 
 
 #include "audio_gen.h"
+#include "envelope.h"
 #include "midi_constants.h"
 #include "debug_uart.h"
 #include "usart.h"
@@ -158,9 +159,31 @@ void handle_midi(void) {
             break;
         case MIDI_CONTROL_CHANGE:
             sprintf((char *)debug_msg,"Control number: 0x%02x, Value 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
-            if (midi_rx_msg[1] == 0x15){
+            switch (midi_rx_msg[1]) {
+            case 0x15:
                 audio_gen_wave_form(midi_rx_msg[2] / 8);
-            }
+                break;
+
+            case 0x19:
+                set_attack(midi_rx_msg[2]);
+                break;
+
+            case 0x1a:
+                set_decay(midi_rx_msg[2]);
+                break;
+
+            case 0x1b:
+                set_sustain(midi_rx_msg[2]);
+                break;
+
+            case 0x1c:
+                set_release(midi_rx_msg[2]);
+                break;
+
+            default:
+                break;
+        }
+
             debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
             break;
         case MIDI_PROGRAM_CHANGE:
