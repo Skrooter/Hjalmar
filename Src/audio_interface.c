@@ -16,7 +16,8 @@
 
 I2C_HandleTypeDef *i2c_handle;
 I2S_HandleTypeDef *i2s_handle;
-uint16_t *audio_buffer_0, *audio_buffer_1, *gen_buffer = NULL;
+uint16_t *audio_buffer_0, *audio_buffer_1 = NULL;
+float *gen_buffer = NULL;
 uint8_t next_audio_buffer = 0;
 
 typedef enum next_buffer_enum {
@@ -137,9 +138,9 @@ void init_audio_output(void)
         _Error_Handler(__FILE__, __LINE__);
     }
     i2s_handle = get_i2s_handle();
-    audio_buffer_0 = calloc(sizeof(int16_t), AUDIO_BUFFER_SIZE);
-    audio_buffer_1 = calloc(sizeof(int16_t), AUDIO_BUFFER_SIZE);
-    gen_buffer = calloc(sizeof(int16_t), GEN_BUFFER_SIZE);
+    audio_buffer_0 = calloc(sizeof(uint16_t), AUDIO_BUFFER_SIZE);
+    audio_buffer_1 = calloc(sizeof(uint16_t), AUDIO_BUFFER_SIZE);
+    gen_buffer = calloc(sizeof(float), GEN_BUFFER_SIZE);
 
     fetch_next_audio_buffer(gen_buffer, AUDIO_BUFFER_SIZE);
     mono_to_stereo(audio_buffer_0, gen_buffer, AUDIO_BUFFER_SIZE);
@@ -157,11 +158,13 @@ void init_audio_output(void)
     }
 }*/
 
-void mono_to_stereo (uint16_t *stereo_samples, uint16_t *mono_samples, uint16_t n_sample_mono)
+void mono_to_stereo (uint16_t *stereo_samples, float *mono_samples, uint16_t n_sample_mono)
 {
+    uint16_t current_sample_int;
     for(uint32_t i = 0; i < n_sample_mono; i++) {
-        stereo_samples[2 * i] = mono_samples[i];
-        stereo_samples[(2 * i) + 1] = mono_samples[i];
+        current_sample_int = (int16_t)(mono_samples[i] * INT16_MAX);
+        stereo_samples[2 * i] =  current_sample_int;
+        stereo_samples[(2 * i) + 1] = current_sample_int;
     }
 }
 

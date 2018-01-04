@@ -18,12 +18,17 @@ typedef enum {
     WAVE_SAW,
     WAVE_PULSE,
     WAVE_TRIANGLE,
-    WAVE_SINE
+    WAVE_INVERTED_TRIANGLE,
+    WAVE_DOUBLE_SAW,
+    WAVE_SINE,
+    WAVE_LAST
 } audio_wave_type_t;
 
-void audio_gen_wave_start(float freq, uint8_t level);
+#define N_WAVES WAVE_LAST
+
+void audio_gen_wave_start(float freq, float level);
 void audio_gen_wave_form(audio_wave_type_t wave_type);
 void audio_gen_wave_stop(void);
-void fetch_next_audio_buffer(uint16_t *audio_samples, uint16_t n_sample);
+void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample);
 
 #endif /* INC_AUDIO_GEN_H_ */

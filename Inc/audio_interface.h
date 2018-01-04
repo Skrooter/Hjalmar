@@ -16,7 +16,7 @@
 
 void init_audio_output(void);
 //void add_to_audio_buffer(int16_t *audio_buffer, uint32_t buf_len);
-void mono_to_stereo (uint16_t *stereo_samples, uint16_t *mono_samples, uint16_t n_sample_mono);
+void mono_to_stereo (uint16_t *stereo_samples, float *mono_samples, uint16_t n_sample_mono);
 void send_audio(void);
 
 

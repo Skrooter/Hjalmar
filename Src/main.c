@@ -153,7 +153,7 @@ int main(void)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
-    audio_gen_wave_form(WAVE_PULSE);
+    audio_gen_wave_form(WAVE_SQUARE);
 
   /* USER CODE END 2 */
 

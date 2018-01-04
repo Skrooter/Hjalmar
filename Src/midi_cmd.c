@@ -141,7 +141,7 @@ void handle_midi(void) {
         switch (current_midi_message) {
         case MIDI_NOTE_ON:
             note_freq = midi_to_frequency(midi_rx_msg[1]);
-            audio_gen_wave_start(note_freq, midi_rx_msg[2]);
+            audio_gen_wave_start(note_freq, (float)midi_rx_msg[2] / 127);
             sprintf((char *)debug_msg,"Note: 0x%02x, velocity 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
             debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
             break;
@@ -158,6 +158,9 @@ void handle_midi(void) {
             break;
         case MIDI_CONTROL_CHANGE:
             sprintf((char *)debug_msg,"Control number: 0x%02x, Value 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
+            if (midi_rx_msg[1] == 0x15){
+                audio_gen_wave_form(midi_rx_msg[2] / 8);
+            }
             debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
             break;
         case MIDI_PROGRAM_CHANGE:
