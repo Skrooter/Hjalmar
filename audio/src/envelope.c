@@ -5,21 +5,8 @@
  *      Author: jaxc
  */
 
+#include "audio_constants.h"
 #include "envelope.h"
-
-uint32_t attack_length;
-float attack_slope;
-uint32_t decay_length;
-float decay_slope;
-float sustain_level;
-uint32_t release_length;
-float release_slope;
-
-float release_start_level;
-
-
-uint32_t envelope_sample_counter;
-uint8_t release_done;
 
 typedef enum {
     ENVELOPE_IDLE_STATE,
@@ -29,18 +16,35 @@ typedef enum {
     ENVELOPE_RELEASE_STATE
 } envelope_state_t;
 
-envelope_state_t envelope_state;
+struct envelope_variables {
+    uint32_t envelope_sample_counter;
+    uint8_t release_done;
+    float release_start_level;
+    envelope_state_t envelope_state;
+};
+
+uint32_t attack_length;
+float attack_slope;
+uint32_t decay_length;
+float decay_slope;
+float sustain_level;
+uint32_t release_length;
+float release_slope;
+
+struct envelope_variables envelope_parameters[POLYPHONY_VOICES];
 
 void init_envelope(void)
 {
-    envelope_state = ENVELOPE_IDLE_STATE;
-    envelope_sample_counter = 0;
-    attack_length = 11025;
-    attack_slope = 1/(float)attack_length;
-    sustain_level = 0.5;
-    decay_length = 10000;
-    decay_slope = ((1-sustain_level)/(float)decay_length);
-    release_length = 15000;
+    for(uint8_t i; i < POLYPHONY_VOICES; i++) {
+        envelope_parameters[i].envelope_state = ENVELOPE_IDLE_STATE;
+        envelope_parameters[i].envelope_sample_counter = 0;
+        attack_length = 11025;
+        attack_slope = 1/(float)attack_length;
+        sustain_level = 0.5;
+        decay_length = 10000;
+        decay_slope = ((1-sustain_level)/(float)decay_length);
+        release_length = 15000;
+    }
     return;
 }
 
@@ -83,68 +87,68 @@ hjalmar_error_code_t set_release(uint8_t midi_release)
     return HJALMAR_OK;
 }
 
-void start_envelope(void)
+void start_envelope(uint8_t voice)
 {
-    envelope_sample_counter = 0;
-    release_done = 0;
-    envelope_state = ENVELOPE_ATTACK_STATE;
+    envelope_parameters[voice].envelope_sample_counter = 0;
+    envelope_parameters[voice].release_done = 0;
+    envelope_parameters[voice].envelope_state = ENVELOPE_ATTACK_STATE;
     return;
 }
 
-void start_release(void)
+void start_release(uint8_t voice)
 {
-    release_slope = (release_start_level/(float)release_length);
-    envelope_state = ENVELOPE_RELEASE_STATE;
-    envelope_sample_counter = 0;
+    release_slope = (envelope_parameters[voice].release_start_level/(float)release_length);
+    envelope_parameters[voice].envelope_state = ENVELOPE_RELEASE_STATE;
+    envelope_parameters[voice].envelope_sample_counter = 0;
 }
 
-void get_sample_envelope(float *sample_level, uint16_t n_samples)
+void get_sample_envelope(float *sample_level, uint16_t n_samples, uint8_t voice)
 {
     for(uint16_t i = 0; i < n_samples; i++) {
-        switch (envelope_state) {
+        switch (envelope_parameters[voice].envelope_state) {
         case ENVELOPE_IDLE_STATE:
             sample_level[i] = 0;
-            release_done = 1;
+            envelope_parameters[voice].release_done = 1;
             break;
 
         case ENVELOPE_ATTACK_STATE:
-            release_start_level = attack_slope * envelope_sample_counter;
-            sample_level[i] = sample_level[i] * release_start_level;
-            if(envelope_sample_counter >= attack_length) {
-                envelope_sample_counter = 0;
-                envelope_state = ENVELOPE_DECAY_STATE;
+            envelope_parameters[voice].release_start_level = attack_slope * envelope_parameters[voice].envelope_sample_counter;
+            sample_level[i] = sample_level[i] * envelope_parameters[voice].release_start_level;
+            if(envelope_parameters[voice].envelope_sample_counter >= attack_length) {
+                envelope_parameters[voice].envelope_sample_counter = 0;
+                envelope_parameters[voice].envelope_state = ENVELOPE_DECAY_STATE;
             }
             else {
-                envelope_sample_counter++;
+                envelope_parameters[voice].envelope_sample_counter++;
             }
 
             break;
 
         case ENVELOPE_DECAY_STATE:
-            release_start_level = (1 - (decay_slope * envelope_sample_counter));
-            sample_level[i] =  sample_level[i] * release_start_level;
-            if(envelope_sample_counter >= decay_length) {
-                envelope_sample_counter = 0;
-                envelope_state = ENVELOPE_SUSTAIN_STATE;
+            envelope_parameters[voice].release_start_level = (1 - (decay_slope * envelope_parameters[voice].envelope_sample_counter));
+            sample_level[i] =  sample_level[i] * envelope_parameters[voice].release_start_level;
+            if(envelope_parameters[voice].envelope_sample_counter >= decay_length) {
+                envelope_parameters[voice].envelope_sample_counter = 0;
+                envelope_parameters[voice].envelope_state = ENVELOPE_SUSTAIN_STATE;
             }
             else {
-                envelope_sample_counter++;
+                envelope_parameters[voice].envelope_sample_counter++;
             }
             break;
 
         case ENVELOPE_SUSTAIN_STATE:
-            release_start_level = sustain_level;
+            envelope_parameters[voice].release_start_level = sustain_level;
             sample_level[i] = sample_level[i] * sustain_level;
             break;
 
         case ENVELOPE_RELEASE_STATE:
-            sample_level[i] = sample_level[i] * (release_start_level - (release_slope * envelope_sample_counter));
-            if(envelope_sample_counter >= release_length) {
-                envelope_sample_counter = 0;
-                envelope_state = ENVELOPE_IDLE_STATE;
+            sample_level[i] = sample_level[i] * (envelope_parameters[voice].release_start_level - (release_slope * envelope_parameters[voice].envelope_sample_counter));
+            if(envelope_parameters[voice].envelope_sample_counter >= release_length) {
+                envelope_parameters[voice].envelope_sample_counter = 0;
+                envelope_parameters[voice].envelope_state = ENVELOPE_IDLE_STATE;
             }
             else {
-                envelope_sample_counter++;
+                envelope_parameters[voice].envelope_sample_counter++;
             }
             break;
 
@@ -154,7 +158,7 @@ void get_sample_envelope(float *sample_level, uint16_t n_samples)
     }
 }
 
-uint8_t get_release_done(void)
+uint8_t get_release_done(uint8_t voice)
 {
-    return release_done;
+    return envelope_parameters[voice].release_done;
 }

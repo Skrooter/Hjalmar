@@ -8,6 +8,8 @@
 #ifndef INC_MIDI_CONSTANTS_H_
 #define INC_MIDI_CONSTANTS_H_
 
+#include <stdint.h>
+
 typedef enum {
     MIDI_NOTE_OFF                = 0x8,
     MIDI_NOTE_ON                 = 0x9,

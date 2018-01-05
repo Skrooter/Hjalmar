@@ -11,13 +11,13 @@
 #include <string.h>
 #include <math.h>
 
-
-#include "audio_gen.h"
-#include "envelope.h"
-#include "midi_constants.h"
 #include "debug_uart.h"
-#include "usart.h"
+#include "envelope.h"
 #include "midi_cmd.h"
+#include "midi_constants.h"
+#include "polyphony_control.h"
+#include "usart.h"
+
 
 
 uint8_t midi_rx_msg[3]; // Standard midi messenges are not larger than 3 bytes.
@@ -32,13 +32,6 @@ enum{
     MIDI_RX_BYTE_1  = 1,
     MIDI_RX_PAYLOAD = 2
 };
-
-float midi_to_frequency(midi_note_number_t midi_note)
-{
-    /* Frequency is calculated from 440 Hz (A6)*/
-    float freq = (440.0 / 32) * powf(2, (((float)midi_note - 9) / 12));
-    return freq;
-}
 
 HAL_StatusTypeDef transmit_midi_message(uint8_t *message, uint16_t size) {
     midi_tx_rdy = 0;
@@ -138,18 +131,15 @@ void handle_midi(void) {
     case MIDI_RX_PAYLOAD:
         midi_rx_rdy = 1;
         midi_rx_state = MIDI_RX_IDLE;
-        float note_freq;
         switch (current_midi_message) {
         case MIDI_NOTE_ON:
-            note_freq = midi_to_frequency(midi_rx_msg[1]);
-            audio_gen_wave_start(note_freq, (float)midi_rx_msg[2] / 127);
+            request_voice(midi_rx_msg[1], midi_rx_msg[2]);
             sprintf((char *)debug_msg,"Note: 0x%02x, velocity 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
             debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
             break;
 
         case MIDI_NOTE_OFF:
-            note_freq = midi_to_frequency(midi_rx_msg[1]);
-            audio_gen_wave_stop();
+            start_release_voice(midi_rx_msg[1]);
             sprintf((char *)debug_msg,"Note: 0x%02x, velocity 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
             debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
             break;

@@ -8,6 +8,7 @@
 
 #include "stm32f4xx_hal.h"
 
+#include "audio_constants.h"
 #include "audio_gen.h"
 #include "audio_interface.h"
 #include "i2c.h"
