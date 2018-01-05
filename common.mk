@@ -49,6 +49,7 @@ OBJ_DIR = $(BUILD_DIR)/obj
 ######################################
 # C sources
 C_SOURCES =  \
+$(wildcard */src/*.c) \
 $(wildcard Src/*.c) \
 $(wildcard Drivers/STM32F4xx_HAL_Driver/Src/*.c) \
 $(wildcard Middlewares/ST/STM32_USB_Device_Library/Core/Src/*.c)
@@ -106,14 +107,18 @@ C_DEFS =  \
 AS_INCLUDES =
 
 # C includes
-C_INCLUDES =  \
--IInc \
--IDrivers/STM32F4xx_HAL_Driver/Inc \
--IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
--IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
--IDrivers/CMSIS/Include \
--IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc
+C_INC =  \
+Inc \
+Drivers/STM32F4xx_HAL_Driver/Inc \
+Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+Drivers/CMSIS/Device/ST/STM32F4xx/Include \
+Drivers/CMSIS/Include \
+Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
+$(wildcard */inc/)
 
+NULL=
+SPACE=$(NULL) $(NULL)
+C_INCLUDES = $(subst $(SPACE),$(SPACE)-I, $(C_INC))
 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
