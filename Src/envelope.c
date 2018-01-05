@@ -108,6 +108,8 @@ void get_sample_envelope(float *sample_level, uint16_t n_samples)
             break;
 
         case ENVELOPE_ATTACK_STATE:
+            release_start_level = attack_slope * envelope_sample_counter;
+            sample_level[i] = sample_level[i] * release_start_level;
             if(envelope_sample_counter >= attack_length) {
                 envelope_sample_counter = 0;
                 envelope_state = ENVELOPE_DECAY_STATE;
@@ -116,11 +118,11 @@ void get_sample_envelope(float *sample_level, uint16_t n_samples)
                 envelope_sample_counter++;
             }
 
-            release_start_level = attack_slope * envelope_sample_counter;
-            sample_level[i] = sample_level[i] * release_start_level;
             break;
 
         case ENVELOPE_DECAY_STATE:
+            release_start_level = (1 - (decay_slope * envelope_sample_counter));
+            sample_level[i] =  sample_level[i] * release_start_level;
             if(envelope_sample_counter >= decay_length) {
                 envelope_sample_counter = 0;
                 envelope_state = ENVELOPE_SUSTAIN_STATE;
@@ -128,8 +130,6 @@ void get_sample_envelope(float *sample_level, uint16_t n_samples)
             else {
                 envelope_sample_counter++;
             }
-            release_start_level = (1 - (decay_slope * envelope_sample_counter));
-            sample_level[i] =  sample_level[i] * release_start_level;
             break;
 
         case ENVELOPE_SUSTAIN_STATE:
@@ -138,6 +138,7 @@ void get_sample_envelope(float *sample_level, uint16_t n_samples)
             break;
 
         case ENVELOPE_RELEASE_STATE:
+            sample_level[i] = sample_level[i] * (release_start_level - (release_slope * envelope_sample_counter));
             if(envelope_sample_counter >= release_length) {
                 envelope_sample_counter = 0;
                 envelope_state = ENVELOPE_IDLE_STATE;
@@ -145,7 +146,6 @@ void get_sample_envelope(float *sample_level, uint16_t n_samples)
             else {
                 envelope_sample_counter++;
             }
-            sample_level[i] = sample_level[i] * (release_start_level - (release_slope * envelope_sample_counter));
             break;
 
         default:

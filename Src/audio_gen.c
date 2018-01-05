@@ -295,9 +295,10 @@ void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample)
             sample_position = 0;
             break;
         }
+        get_sample_envelope(audio_samples, n_sample);
     }
 
-    get_sample_envelope(audio_samples, n_sample);
+
 
     return;
 }
