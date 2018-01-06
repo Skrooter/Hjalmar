@@ -288,11 +288,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
-    if (huart->Instance == USART2){
+    switch ((int32_t)huart->Instance) {
+    case (int32_t)USART2:
         set_midi_tx_state(1);
-    }
-    else if (huart->Instance == USART3){
+        break;
+
+    case (int32_t)USART3:
         send_debug_from_buffer();
+        break;
     }
 
 }

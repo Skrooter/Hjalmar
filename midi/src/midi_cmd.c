@@ -21,17 +21,22 @@
 
 
 uint8_t midi_rx_msg[3]; // Standard midi messenges are not larger than 3 bytes.
+uint8_t midi_rx_dma_byte; // Incomming byte.
 uint16_t *midi_rx_size;
-uint8_t midi_rx_state;
 uint8_t midi_tx_rdy;
 midi_message_type_t current_midi_message;
 uint8_t midi_rx_rdy;
 
-enum{
-    MIDI_RX_IDLE    = 0,
-    MIDI_RX_BYTE_1  = 1,
-    MIDI_RX_PAYLOAD = 2
-};
+typedef enum MIDI_state{
+    MIDI_RX_IDLE,
+    MIDI_RX_CMD_BYTE,
+    MIDI_RX_DATA_BYTE_1,
+    MIDI_RX_DATA_BYTE_2,
+    MIDI_RX_SINGLE_DATA,
+    MIDI_RX_SYSTEM
+} midi_state_t;
+
+midi_state_t midi_rx_state;
 
 HAL_StatusTypeDef transmit_midi_message(uint8_t *message, uint16_t size) {
     midi_tx_rdy = 0;
@@ -39,116 +44,74 @@ HAL_StatusTypeDef transmit_midi_message(uint8_t *message, uint16_t size) {
 }
 
 HAL_StatusTypeDef start_midi_receive(void) {
-    return receive_midi_byte_1();
+    return receive_first_midi_byte();
 }
 
-HAL_StatusTypeDef receive_midi_byte_1(void) {
+HAL_StatusTypeDef receive_first_midi_byte(void) {
     midi_rx_rdy = 0;
-    midi_rx_state = MIDI_RX_BYTE_1;
-    return HAL_UART_Receive_DMA(&huart2, midi_rx_msg, 1);
+    midi_rx_state = MIDI_RX_CMD_BYTE;
+    return HAL_UART_Receive_DMA(&huart2, &midi_rx_dma_byte, 1);
 }
 
 void handle_midi(void) {
-    uint8_t debug_msg[64] = {0};
+    uint8_t midi_rx_byte = midi_rx_dma_byte;
+    if(HAL_UART_Receive_DMA(&huart2, &midi_rx_dma_byte, 1) != HAL_OK) {
+        _Error_Handler(__FILE__, __LINE__);
+    }
 
-    switch (midi_rx_state){
-    case MIDI_RX_BYTE_1:
-        switch ((midi_rx_msg[0] & 0xF0) >> 4) {
-        case MIDI_NOTE_ON:
-            current_midi_message = MIDI_NOTE_ON;
-            midi_rx_state = MIDI_RX_PAYLOAD;
-            sprintf((char *)debug_msg,"Note on received on channel %d. "
-                    "(0x%02x).", (midi_rx_msg[0] & 0xF) + 1, midi_rx_msg[0]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            HAL_UART_Receive_DMA(&huart2, midi_rx_msg + 1, 2);
-            break;
+    if((midi_rx_byte & 0x80)) {
+        midi_rx_state = MIDI_RX_CMD_BYTE;
+    }
+    switch(midi_rx_state) {
+    case MIDI_RX_IDLE:
+        break;
 
+    case MIDI_RX_CMD_BYTE:
+        midi_rx_msg[0] = midi_rx_byte;
+        current_midi_message = (midi_rx_msg[0] & 0xF0) >> 4;
+        switch (current_midi_message) {
         case MIDI_NOTE_OFF:
-            current_midi_message = MIDI_NOTE_OFF;
-            midi_rx_state = MIDI_RX_PAYLOAD;
-            sprintf((char *)debug_msg,"Note off received on channel %d. "
-                    "(0x%02x).", (midi_rx_msg[0] & 0xF) + 1, midi_rx_msg[0]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            HAL_UART_Receive_DMA(&huart2, midi_rx_msg + 1, 2);
-            break;
-
+        case MIDI_NOTE_ON:
         case MIDI_POLYPHONIC_PRESSURE:
-            current_midi_message = MIDI_POLYPHONIC_PRESSURE;
-            midi_rx_state = MIDI_RX_PAYLOAD;
-            sprintf((char *)debug_msg,"Polyphonic pressure received on channel "
-                    "%d. (0x%02x).", (midi_rx_msg[0] & 0xF) + 1, midi_rx_msg[0]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            HAL_UART_Receive_DMA(&huart2, midi_rx_msg + 1, 2);
-            break;
-
         case MIDI_CONTROL_CHANGE:
-            current_midi_message = MIDI_CONTROL_CHANGE;
-            midi_rx_state = MIDI_RX_PAYLOAD;
-            sprintf((char *)debug_msg,"Control change received on channel %d. "
-                    "(0x%02x).", (midi_rx_msg[0] & 0xF) + 1, midi_rx_msg[0]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            HAL_UART_Receive_DMA(&huart2, midi_rx_msg + 1, 2);
+        case MIDI_PITCH_BEND:
+            midi_rx_state = MIDI_RX_DATA_BYTE_1;
             break;
 
         case MIDI_PROGRAM_CHANGE:
-            current_midi_message = MIDI_PROGRAM_CHANGE;
-            midi_rx_state = MIDI_RX_PAYLOAD;
-            sprintf((char *)debug_msg,"Program change received on channel %d. "
-                    "(0x%02x).", (midi_rx_msg[0] & 0xF) + 1, midi_rx_msg[0]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            HAL_UART_Receive_DMA(&huart2, midi_rx_msg + 1, 1);
-            break;
-
         case MIDI_CHANNEL_PRESSURE:
-            current_midi_message = MIDI_CHANNEL_PRESSURE;
-            midi_rx_state = MIDI_RX_PAYLOAD;
-            sprintf((char *)debug_msg,"Channel pressure received on channel %d."
-                    " (0x%02x).", (midi_rx_msg[0] & 0xF) + 1, midi_rx_msg[0]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            HAL_UART_Receive_DMA(&huart2, midi_rx_msg + 1, 1);
+            midi_rx_state = MIDI_RX_SINGLE_DATA;
             break;
 
-        case MIDI_PITCH_BEND:
-            current_midi_message = MIDI_PITCH_BEND;
-            midi_rx_state = MIDI_RX_PAYLOAD;
-            sprintf((char *)debug_msg,"Pitch bend received on channel %d. "
-                    "(0x%02x)", (midi_rx_msg[0] & 0xF) + 1, midi_rx_msg[0]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            HAL_UART_Receive_DMA(&huart2, midi_rx_msg + 1, 2);
+        case MIDI_SYSTEM:
+            midi_rx_state = MIDI_RX_SYSTEM;
             break;
 
         default:
-            sprintf((char *)debug_msg,"Unknown command received (0x%02x)",
-                    midi_rx_msg[0]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-
-            if (receive_midi_byte_1() != HAL_OK)
-            {
-                _Error_Handler(__FILE__, __LINE__);
-            }
+            midi_rx_state = MIDI_RX_CMD_BYTE;
+            return;
         }
-        break;
-    case MIDI_RX_PAYLOAD:
-        midi_rx_rdy = 1;
-        midi_rx_state = MIDI_RX_IDLE;
-        switch (current_midi_message) {
-        case MIDI_NOTE_ON:
-            request_voice(midi_rx_msg[1], midi_rx_msg[2]);
-            sprintf((char *)debug_msg,"Note: 0x%02x, velocity 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            break;
 
+        break;
+
+    case MIDI_RX_DATA_BYTE_1:
+        midi_rx_msg[1] = midi_rx_byte;
+        midi_rx_state = MIDI_RX_DATA_BYTE_2;
+        break;
+
+    case MIDI_RX_DATA_BYTE_2:
+        midi_rx_msg[2] = midi_rx_byte;
+        midi_rx_state = MIDI_RX_DATA_BYTE_2;
+        switch(current_midi_message) {
         case MIDI_NOTE_OFF:
             start_release_voice(midi_rx_msg[1]);
-            sprintf((char *)debug_msg,"Note: 0x%02x, velocity 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
+            break;
+
+        case MIDI_NOTE_ON:
+            request_voice(midi_rx_msg[1], midi_rx_msg[2]);
             break;
         case MIDI_POLYPHONIC_PRESSURE:
-            sprintf((char *)debug_msg,"Note: 0x%02x, pressure 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            break;
         case MIDI_CONTROL_CHANGE:
-            sprintf((char *)debug_msg,"Control number: 0x%02x, Value 0x%02x", midi_rx_msg[1], midi_rx_msg[2]);
             switch (midi_rx_msg[1]) {
             case 0x15:
                 audio_gen_wave_form(midi_rx_msg[2] / 8);
@@ -172,33 +135,25 @@ void handle_midi(void) {
 
             default:
                 break;
-        }
-
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            break;
-        case MIDI_PROGRAM_CHANGE:
-            sprintf((char *)debug_msg,"Program number: 0x%02x", midi_rx_msg[1]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            break;
-        case MIDI_CHANNEL_PRESSURE:
-            sprintf((char *)debug_msg,"Pressure: 0x%02x", midi_rx_msg[1]);
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
-            break;
-        case MIDI_PITCH_BEND:
-            sprintf((char *)debug_msg,"Pitch: 0x%04x", midi_rx_msg[1] + (midi_rx_msg[2] << 8));
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
+            }
             break;
         default:
-            sprintf((char *)debug_msg,"error incorrect payload");
-            debug_log_add(debug_msg, strlen((char *)debug_msg), LOG_LEVEL_INFO);
+            midi_rx_state = MIDI_RX_CMD_BYTE;
             break;
-        }
 
-        if (receive_midi_byte_1() != HAL_OK)
-        {
-            _Error_Handler(__FILE__, __LINE__);
-        }
 
+        }
+        break;
+
+    case MIDI_RX_SINGLE_DATA:
+        break;
+
+    case MIDI_RX_SYSTEM:
+        break;
+
+    default:
+        midi_rx_state = MIDI_RX_CMD_BYTE;
+        break;
     }
 }
 

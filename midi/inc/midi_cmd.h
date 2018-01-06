@@ -13,7 +13,7 @@
 
 HAL_StatusTypeDef transmit_midi_message(uint8_t *message, uint16_t size);
 HAL_StatusTypeDef start_midi_receive(void);
-HAL_StatusTypeDef receive_midi_byte_1(void);
+HAL_StatusTypeDef receive_first_midi_byte(void);
 uint8_t get_midi_tx_state (void);
 void set_midi_tx_state (uint8_t state);
 uint8_t get_midi_rx_state (void);
