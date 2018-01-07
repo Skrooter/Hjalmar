@@ -282,7 +282,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART2){
-        handle_midi();
+        handle_midi_int();
     }
 
 }

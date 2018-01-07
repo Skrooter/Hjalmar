@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-typedef enum {
+typedef enum midi_message_type{
     MIDI_NOTE_OFF                = 0x8,
     MIDI_NOTE_ON                 = 0x9,
     MIDI_POLYPHONIC_PRESSURE     = 0xA,
@@ -21,7 +21,18 @@ typedef enum {
     MIDI_SYSTEM                  = 0xF
 } midi_message_type_t;
 
-typedef enum {
+typedef enum midi_system_type{
+    MIDI_SYSTEM_TIMING_CLOCK    = 0xF8,
+    MIDI_SYSTEM_UNDEFINED       = 0xF9,
+    MIDI_SYSTEM_START           = 0xFA,
+    MIDI_SYSTEM_CONTINUE        = 0xFB,
+    MIDI_SYSTEM_STOP            = 0xFC,
+    MIDI_SYSTEM_UNDEFINED_2     = 0xFD,
+    MIDI_SYSTEM_ACTIVE_SENSE    = 0xFE,
+    MIDI_SYSTEM_PANIC           = 0xFF
+} midi_system_type_t;
+
+typedef enum octave_offset{
     OCTAVE_O            = 0,
     OCTAVE_1            = 12,
     OCTAVE_2            = 24,
@@ -33,9 +44,9 @@ typedef enum {
     OCTAVE_8            = 96,
     OCTAVE_9            = 108,
     OCTAVE_1O           = 120
-} octave_offset;
+} octave_offset_t;
 
-typedef enum{
+typedef enum note_offset{
     NOTE_C              = 0,
     NOTE_DB             = 1,
     NOTE_D              = 2,
@@ -50,7 +61,7 @@ typedef enum{
     NOTE_B              = 11
 } note_offset_t;
 
-typedef enum {
+typedef enum midi_note_number{
     NOTE_C_0            = OCTAVE_O + NOTE_C,
     NOTE_DB_0           = OCTAVE_O + NOTE_DB,
     NOTE_D_0            = OCTAVE_O + NOTE_D,
@@ -181,7 +192,7 @@ typedef enum {
     NOTE_G_10           = OCTAVE_1O + NOTE_G
 } midi_note_number_t;
 
-typedef enum {
+typedef enum midi_channel{
     MIDI_CHANNEL_0      = 0,
     MIDI_CHANNEL_1      = 1,
     MIDI_CHANNEL_2      = 2,
@@ -199,7 +210,7 @@ typedef enum {
     MIDI_CHANNEL_14     = 14,
     MIDI_CHANNEL_15     = 15,
 
-} midi_channel;
+} midi_channel_t;
 
 typedef struct midi_note_cmd{
     uint8_t             cmd_chan;
@@ -210,33 +221,33 @@ typedef struct midi_note_cmd{
 
 typedef struct midi_poly_pressure {
     midi_message_type_t        command;
-    midi_channel        channel;
+    midi_channel_t        channel;
     midi_note_number_t    note_number;
     uint8_t             pressure;
 } midi_poly_pressure_t;
 
 typedef struct midi_control_change {
     midi_message_type_t        command;
-    midi_channel        channel;
+    midi_channel_t        channel;
     uint8_t             controller_number;
     uint8_t             control_change_value;
 } midi_control_change_t;
 
 typedef struct midi_program_change {
     midi_message_type_t        command;
-    midi_channel        channel;
+    midi_channel_t        channel;
     uint8_t             program_number;
 } midi_program_change_t;
 
 typedef struct midi_channel_pressure {
     midi_message_type_t        command;
-    midi_channel        channel;
+    midi_channel_t        channel;
     uint8_t             pressure;
 } midi_channel_pressure_t;
 
 typedef struct midi_pitch_bend {
     midi_message_type_t        command;
-    midi_channel        channel;
+    midi_channel_t        channel;
     uint16_t            pitch_bend;
 } midi_pitch_bend_t;
 

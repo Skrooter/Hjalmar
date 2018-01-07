@@ -17,6 +17,7 @@
 #include "midi_constants.h"
 #include "polyphony_control.h"
 #include "usart.h"
+#include "work_queue.h"
 
 
 
@@ -53,11 +54,21 @@ HAL_StatusTypeDef receive_first_midi_byte(void) {
     return HAL_UART_Receive_DMA(&huart2, &midi_rx_dma_byte, 1);
 }
 
-void handle_midi(void) {
-    uint8_t midi_rx_byte = midi_rx_dma_byte;
+void handle_midi_int(void)
+{
+    uint8_t *midi_rx_byte = malloc(sizeof(uint8_t));
+    *midi_rx_byte = midi_rx_dma_byte;
     if(HAL_UART_Receive_DMA(&huart2, &midi_rx_dma_byte, 1) != HAL_OK) {
         _Error_Handler(__FILE__, __LINE__);
     }
+
+    work_queue_add(handle_midi, (void *)midi_rx_byte);
+
+}
+
+void handle_midi(void *midi_rx_in) {
+
+    uint8_t midi_rx_byte = *(uint8_t *)midi_rx_in;
 
     if((midi_rx_byte & 0x80)) {
         midi_rx_state = MIDI_RX_CMD_BYTE;
@@ -84,7 +95,20 @@ void handle_midi(void) {
             break;
 
         case MIDI_SYSTEM:
-            midi_rx_state = MIDI_RX_SYSTEM;
+            switch (midi_rx_msg[0]) {
+            case MIDI_SYSTEM_PANIC:
+                reset_polyphony_voices();
+                break;
+
+            default:
+                break;
+            }
+            if (midi_rx_msg[0] == 0xF0) {
+                midi_rx_state = MIDI_RX_SYSTEM;
+            }
+            else {
+                midi_rx_state = MIDI_RX_CMD_BYTE;
+            }
             break;
 
         default:
@@ -101,7 +125,7 @@ void handle_midi(void) {
 
     case MIDI_RX_DATA_BYTE_2:
         midi_rx_msg[2] = midi_rx_byte;
-        midi_rx_state = MIDI_RX_DATA_BYTE_2;
+        midi_rx_state = MIDI_RX_DATA_BYTE_1;
         switch(current_midi_message) {
         case MIDI_NOTE_OFF:
             start_release_voice(midi_rx_msg[1]);
@@ -154,6 +178,11 @@ void handle_midi(void) {
     default:
         midi_rx_state = MIDI_RX_CMD_BYTE;
         break;
+    }
+
+    if(midi_rx_byte) {
+        free(midi_rx_in);
+        midi_rx_in = NULL;
     }
 }
 

@@ -41,7 +41,7 @@ void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample)
 
         struct wave_information *voice_data;
         get_voice_information(&voice_data, i);
-        voice_data->mute_output = get_release_done(i);
+        voice_data->mute_output = voice_data->env_var.release_done;
         if (voice_data->mute_output == 1) {
             complete_release_voice(i);
             for(int i = 0; i < n_sample; i++) {
@@ -274,7 +274,7 @@ void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample)
                 voice_data->sample_position = 0;
                 break;
             }
-            get_sample_envelope(voice_samples[i], n_sample, i);
+            get_sample_envelope(&voice_data->env_var, voice_samples[i], n_sample);
         }
 
     }
@@ -291,7 +291,7 @@ void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample)
             for(uint8_t i = 0; i < active_polyphony; i++){
                audio_samples[j] += voice_samples[i][j];
             }
-            audio_samples[j] = audio_samples[j] * 0.25;
+            audio_samples[j] = audio_samples[j] * 0.125;
         }
     }
 

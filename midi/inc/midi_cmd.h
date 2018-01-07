@@ -18,6 +18,7 @@ uint8_t get_midi_tx_state (void);
 void set_midi_tx_state (uint8_t state);
 uint8_t get_midi_rx_state (void);
 void set_midi_rx_state (uint8_t state);
-void handle_midi(void);
+void handle_midi_int(void);
+void handle_midi(void *midi_rx_byte);
 
 #endif /* INC_MIDI_CMD_H_ */
