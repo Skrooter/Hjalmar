@@ -21,6 +21,7 @@ struct wave_information{
     uint8_t mute_output;
     float slope;
     float pulse_duty_cycle;
+    float pulse_duty_samples;
     float rads;
     uint8_t wave_state;
     struct envelope_variables env_var;

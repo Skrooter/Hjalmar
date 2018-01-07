@@ -37,6 +37,7 @@ void get_voice_parameters(midi_note_number_t requested_note, float level, uint8_
     voice_info[voice].wave_amplitude = level;
     voice_info[voice].wave_state = 0;
     voice_info[voice].pulse_duty_cycle = 0.05;
+    voice_info[voice].pulse_duty_samples = voice_info[voice].wave_period * voice_info[voice].pulse_duty_cycle;
     start_envelope(&voice_info[voice].env_var);
 
     voice_info[voice].mute_output = 0;
@@ -51,6 +52,7 @@ void reset_polyphony_voices(void)
         voice_info[i].mute_output = 1;
         voice_info[i].note_freq = 0;
         voice_info[i].pulse_duty_cycle = 0.05;
+        voice_info[i].pulse_duty_samples = 0;
         voice_info[i].rads = 0;
         voice_info[i].sample_position = 0;
         voice_info[i].slope = 0;
@@ -66,6 +68,10 @@ void reset_polyphony_voices(void)
 
 hjalmar_error_code_t request_voice(midi_note_number_t requested_note, uint8_t velocity)
 {
+    if(requested_note >= NOTE_C_5){
+        requested_note = NOTE_C_5;
+    }
+
     if ((requested_note > 127) || (velocity > 127)) {
         return HJALMAR_INVALID_ARGUMENT;
     }

@@ -170,41 +170,8 @@ int main(void)
   /* USER CODE BEGIN 3 */
 
         work_queue_process();
-/*
-        uint32_t pins = read_io_pins();
-        wait_ms(10);
-        while (!wait_done());
-*/
-/*      note.cmd_chan = (uint8_t) (NOTE_ON << 4) | MIDI_CHANNEL_0;
-      note.note_number = current_note++;
-
-      if(transmit_midi_message((uint8_t *)&note, 4) != HAL_OK){
-          _Error_Handler(__FILE__, __LINE__);
-      }
-      HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-
-      if(wait_ms(100) != HAL_OK)
-      {
-          _Error_Handler(__FILE__, __LINE__);
-      }
-      while(!get_midi_tx_state());
-      while (!wait_done());
-      HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-
-      note.cmd_chan = (uint8_t) (NOTE_OFF << 4) | MIDI_CHANNEL_0;
-      if(transmit_midi_message((uint8_t *)&note, 4) != HAL_OK){
-          _Error_Handler(__FILE__, __LINE__);
-      }
-
-      if(wait_ms(1000) != HAL_OK)
-      {
-          _Error_Handler(__FILE__, __LINE__);
-      }
-      while (!get_midi_tx_state());
-      while (!wait_done());*/
-
-  }
-  /* USER CODE END 3 */
+    }
+    /* USER CODE END 3 */
 
 }
 

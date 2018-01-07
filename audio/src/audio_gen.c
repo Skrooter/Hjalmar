@@ -41,6 +41,7 @@ void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample)
 
         struct wave_information *voice_data;
         get_voice_information(&voice_data, i);
+
         voice_data->mute_output = voice_data->env_var.release_done;
         if (voice_data->mute_output == 1) {
             complete_release_voice(i);
@@ -99,7 +100,6 @@ void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample)
                 break;
 
             case WAVE_PULSE:
-                voice_data->pulse_duty_cycle = voice_data->wave_period * voice_data->pulse_duty_cycle;
                 for(int j = 0; j < n_sample; j++) {
                     if (voice_data->sample_position >= voice_data->wave_period) {
                         voice_data->sample_position = 0;
@@ -108,7 +108,7 @@ void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample)
                         voice_data->sample_position += 1.0;
                     }
 
-                    if (voice_data->sample_position >= voice_data->pulse_duty_cycle) {
+                    if (voice_data->sample_position >= voice_data->pulse_duty_samples) {
                         voice_samples[i][j] = voice_data->wave_amplitude;
                     }
                     else {
