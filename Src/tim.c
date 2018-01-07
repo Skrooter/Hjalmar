@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2017 STMicroelectronics International N.V. 
+  * Copyright (c) 2018 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -49,10 +49,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "tim.h"
-#include "audio_gen.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "audio_gen.h"
 #include "gpio.h"
 
 uint32_t wait_cnt = 1;
