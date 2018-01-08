@@ -10,10 +10,13 @@
 
 typedef enum general_erros{
     HJALMAR_OK                 = 0,
-    HJALMAR_NOT_SUPPORTED      = -1,
-    HJALMAR_NOT_IMPLEMENTED    = -2,
-    HJALMAR_INVALID_ARGUMENT   = -3,
-    HJALMAR_QUEUE_FULL         = -4
+    HJALMAR_FAILED             = -1,
+    HJALMAR_BUSY               = -2,
+    HJALMAR_TIMEOUT            = -3,
+    HJALMAR_NOT_SUPPORTED      = -4,
+    HJALMAR_NOT_IMPLEMENTED    = -5,
+    HJALMAR_INVALID_ARGUMENT   = -6,
+    HJALMAR_QUEUE_FULL         = -7
 } hjalmar_error_code_t;
 
 
