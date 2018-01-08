@@ -3,27 +3,6 @@
 
 #include <stdint.h>
 
-#ifndef SWAPBYTE
-#define SWAPBYTE(addr) (((uint16_t)(*((uint8_t *)(addr)))) + \
-                       (((uint16_t)(*(((uint8_t *)(addr)) + 1))) << 8))
-#endif
-
-#ifndef LOBYTE
-#define LOBYTE(x)  ((uint8_t)(x & 0x00FF))
-#endif
-
-#ifndef HIBYTE
-#define HIBYTE(x)  ((uint8_t)((x & 0xFF00) >>8))
-#endif
-
-#ifndef MIN
-#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
-#endif
-
-#ifndef MAX
-#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
-#endif
-
 /*------------------------------------------------------------------------------*/
 /*  General descriptors                                                         */
 /*------------------------------------------------------------------------------*/

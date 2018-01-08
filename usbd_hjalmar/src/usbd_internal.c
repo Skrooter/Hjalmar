@@ -33,13 +33,13 @@ static void usbd_get_descriptor(usbd_context_t *ctx, usb_setup_packet_t *setup)
     switch (setup->wValue >> 8)
     {
     case USB_DEVICE_DESC_TYPE:
-        desc = (uint8_t *)usbd_get_dev_desc(&length);
+        desc = usbd_get_dev_desc(&length);
         break;
     case USB_CONFIG_DESC_TYPE:
-        desc = (uint8_t *)usbd_get_cfg_desc(0, &length);
+        desc = usbd_get_cfg_desc(0, &length);
         break;
     case USB_STRING_DESC_TYPE:
-        switch ((uint8_t)setup->wValue)
+        switch ((uint8_t)(setup->wValue))
         {
         case USBD_IDX_LANGID_STR:
             desc = (uint8_t *)usbd_get_langid_str(&length);
@@ -64,12 +64,12 @@ static void usbd_get_descriptor(usbd_context_t *ctx, usb_setup_packet_t *setup)
             break;
         default:
             usbd_ctrl_error(ctx);
-            break;
+            return;
         }
         break;
     default:
         usbd_ctrl_error(ctx);
-        break;
+        return;
     }
 
     if ((length != 0) && (setup->wLength != 0))
@@ -367,7 +367,7 @@ void usbd_data_rx_stage(usbd_context_t *ctx, uint8_t epnum,
 {
     uint16_t rx_count = 0;
 
-    if (USB_EP_RX(epnum) == USBD_EP_CTRL_RX)
+    if (epnum == 0)
     {
         if (ctx->ep0_state == USBD_EP0_DATA_RX)
         {
@@ -388,7 +388,7 @@ void usbd_data_rx_stage(usbd_context_t *ctx, uint8_t epnum,
     }
     else if (ctx->current_state == USB_DEVICE_STATE_CONFIGURED)
     {
-        switch (USB_EP_RX(epnum)) {
+        switch (epnum) {
         case USBD_EP_MIDI_RX:
             usbd_midi_rx(ctx, xfer_count);
             break;
@@ -403,7 +403,7 @@ void usbd_data_rx_stage(usbd_context_t *ctx, uint8_t epnum,
 
 void usbd_data_tx_stage(usbd_context_t *ctx, uint8_t epnum, uint8_t *xfer_buff)
 {
-    if (USB_EP_TX(epnum) == USBD_EP_CTRL_TX)
+    if (epnum == 0)
     {
         if (ctx->ep0_state == USBD_EP0_DATA_TX)
         {
@@ -433,7 +433,7 @@ void usbd_data_tx_stage(usbd_context_t *ctx, uint8_t epnum, uint8_t *xfer_buff)
     }
     else if (ctx->current_state == USB_DEVICE_STATE_CONFIGURED)
     {
-        switch (USB_EP_TX(epnum)) {
+        switch (epnum) {
         case USBD_EP_MIDI_RX:
             usbd_midi_tx(ctx);
             break;
@@ -454,11 +454,6 @@ void usbd_start_of_frame(usbd_context_t *ctx)
 
 void usbd_reset(usbd_context_t *ctx)
 {
-    usbd_ep_open(ctx, USBD_EP_CTRL_TX,
-                 USBD_EP_CTRL_TYPE, USBD_CTRL_PACKET_SIZE);
-    usbd_ep_open(ctx, USBD_EP_CTRL_RX,
-                 USBD_EP_CTRL_TYPE, USBD_CTRL_PACKET_SIZE);
-
     ctx->current_state = USB_DEVICE_STATE_DEFAULT;
     ctx->restore_state = USB_DEVICE_STATE_DEFAULT;
     ctx->remote_wake_armed = 0;
@@ -470,6 +465,11 @@ void usbd_reset(usbd_context_t *ctx)
     usbd_ep_close(ctx, USBD_EP_CDC_TX);
     usbd_ep_close(ctx, USBD_EP_CDC_RX);
     usbd_ep_close(ctx, USBD_EP_CDC_CMD);
+
+    usbd_ep_open(ctx, USBD_EP_CTRL_TX,
+                 USBD_EP_CTRL_TYPE, USBD_CTRL_PACKET_SIZE);
+    usbd_ep_open(ctx, USBD_EP_CTRL_RX,
+                 USBD_EP_CTRL_TYPE, USBD_CTRL_PACKET_SIZE);
 }
 
 void usbd_suspend(usbd_context_t *ctx)
@@ -507,13 +507,11 @@ void usbd_disconnect(usbd_context_t *ctx)
 void usbd_ctrl_transmit(usbd_context_t *ctx,
                         uint8_t *xfer_buff, uint16_t length)
 {
-
     ctx->ep0_tx.total_length = length;
     ctx->ep0_tx.rem_length = length;
     ctx->ep0_state = USBD_EP0_DATA_TX;
 
-    usbd_ep_transmit(ctx, USBD_EP_CTRL_TX, xfer_buff,
-                     MIN(length, ctx->ep0_tx.max_packet_length));
+    usbd_ep_transmit(ctx, USBD_EP_CTRL_TX, xfer_buff, length);
 }
 
 void usbd_ctrl_receive(usbd_context_t *ctx,
@@ -523,8 +521,7 @@ void usbd_ctrl_receive(usbd_context_t *ctx,
     ctx->ep0_rx.rem_length = length;
     ctx->ep0_state = USBD_EP0_DATA_RX;
 
-    usbd_ep_receive(ctx, USBD_EP_CTRL_RX, xfer_buff,
-                    MIN(length, ctx->ep0_rx.max_packet_length));
+    usbd_ep_receive(ctx, USBD_EP_CTRL_RX, xfer_buff, length);
 }
 
 usbd_context_t *usbd_get_context(void)
@@ -539,7 +536,12 @@ int usbd_init(void)
     hjalmar_ctx.current_state = USB_DEVICE_STATE_DEFAULT;
     hjalmar_ctx.restore_state = USB_DEVICE_STATE_DEFAULT;
 
-    return usbd_hw_init(&hjalmar_ctx);
+    if (usbd_hw_init(&hjalmar_ctx) != HJALMAR_OK)
+    {
+        return HJALMAR_FAILED;
+    }
+
+    return usbd_start(&hjalmar_ctx);
 }
 
 int usbd_deinit(void)

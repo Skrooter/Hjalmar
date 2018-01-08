@@ -14,9 +14,9 @@
 #define USBD_CDC_IF_STRING              L"Hjalmar CDC Interface"
 
 /* USB Standard Device Descriptor */
-static uint8_t usbd_hjalmar_dev_desc[] = {
-    USB_DEVICE_DESC_TYPE,
+static uint8_t usbd_hjalmar_dev_desc[USB_DEVICE_DESC_SIZE] = {
     USB_DEVICE_DESC_SIZE,
+    USB_DEVICE_DESC_TYPE,
     0x00,
     0x02,
     0xEF,
@@ -36,7 +36,7 @@ static uint8_t usbd_hjalmar_dev_desc[] = {
 };
 
 /* USB CDC device Configuration Descriptor */
-static uint8_t usbd_hjalmar_cfg_desc[] = {
+static uint8_t usbd_hjalmar_cfg_desc[USBD_CFG_SIZE] = {
     /*Configuration Descriptor*/
     USB_CONFIG_DESC_SIZE,               /* bLength: Configuration Descriptor size */
     USB_CONFIG_DESC_TYPE,               /* bDescriptorType: Configuration */
@@ -289,7 +289,7 @@ USB_STRING(usbd_hjalmar_cfg_str, USBD_CONFIGURATION_STRING);
 USB_STRING(usbd_hjalmar_midi_if_str, USBD_MIDI_IF_STRING);
 USB_STRING(usbd_hjalmar_cdc_if_str, USBD_CDC_IF_STRING);
 
-uint8_t usbd_hjalmar_langid_str[] = {
+static uint8_t usbd_hjalmar_langid_str[4] = {
     4,
     USB_LANGID_DESC_TYPE,
     LOBYTE(USBD_LANGID_ENG_US),
@@ -298,20 +298,14 @@ uint8_t usbd_hjalmar_langid_str[] = {
 
 uint8_t *usbd_get_dev_desc(uint16_t *length)
 {
-    *length = sizeof(usbd_hjalmar_dev_desc);
+    *length = USB_DEVICE_DESC_SIZE;
     return usbd_hjalmar_dev_desc;
-}
-
-uint8_t *usbd_hjalmar_dev_qualifier_desc(uint16_t *length)
-{
-    *length = sizeof(usbd_hjalmar_dev_qualifier_desc);
-    return usbd_hjalmar_dev_qualifier_desc;
 }
 
 uint8_t *usbd_get_cfg_desc(uint8_t cfg_no, uint16_t *length)
 {
 	(void)cfg_no;
-    *length = sizeof(usbd_hjalmar_cfg_desc);
+    *length = USBD_CFG_SIZE;
     return usbd_hjalmar_cfg_desc;
 }
 

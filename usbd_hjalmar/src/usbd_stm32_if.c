@@ -3,6 +3,7 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal.h"
 #include "usbd_internal.h"
+#include "usbd_hjalmar_desc.h"
 #include "error_codes.h"
 
 PCD_HandleTypeDef hpcd_hjalmar;
@@ -59,9 +60,7 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef* pcdHandle)
 
 void HAL_PCD_SetupStageCallback(PCD_HandleTypeDef *hpcd)
 {
-    usb_setup_packet_t *setup = (usb_setup_packet_t *)hpcd->Setup;
-
-    usbd_setup_stage((usbd_context_t *)hpcd->pData, setup);
+    usbd_setup_stage((usbd_context_t *)hpcd->pData, (usb_setup_packet_t *)hpcd->Setup);
 }
 
 /* Rx complete callback */
@@ -123,7 +122,7 @@ int usbd_hw_init(usbd_context_t *ctx)
     ctx->dev_data = &hpcd_hjalmar;
 
     hpcd_hjalmar.Instance = USB_OTG_FS;
-    hpcd_hjalmar.Init.dev_endpoints = 4;
+    hpcd_hjalmar.Init.dev_endpoints = 7;
     hpcd_hjalmar.Init.speed = PCD_SPEED_FULL;
     hpcd_hjalmar.Init.dma_enable = DISABLE;
     hpcd_hjalmar.Init.ep0_mps = DEP0CTL_MPS_64;
