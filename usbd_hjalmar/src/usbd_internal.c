@@ -28,15 +28,15 @@ static void usbd_ctrl_recv_status(usbd_context_t *ctx)
 static void usbd_get_descriptor(usbd_context_t *ctx, usb_setup_packet_t *setup)
 {
     uint16_t length = 0;
-    const uint8_t *desc;
+    uint8_t *desc;
 
     switch (setup->wValue >> 8)
     {
     case USB_DEVICE_DESC_TYPE:
-        desc = usbd_get_dev_desc(&length);
+        desc = (uint8_t *)usbd_get_dev_desc(&length);
         break;
     case USB_CONFIG_DESC_TYPE:
-        desc = usbd_get_cfg_desc(0, &length);
+        desc = (uint8_t *)usbd_get_cfg_desc(0, &length);
         break;
     case USB_STRING_DESC_TYPE:
         switch ((uint8_t)(setup->wValue))
@@ -126,7 +126,12 @@ static void usbd_setup_config(usbd_context_t *ctx, usb_setup_packet_t *setup)
             {
                 ctx->current_config = cfg;
                 ctx->current_state = USB_DEVICE_STATE_CONFIGURED;
-                usbd_hjalmar_class_init(ctx, cfg);
+                ctx->restore_state = USB_DEVICE_STATE_CONFIGURED;
+                if (usbd_hjalmar_class_init(ctx, cfg))
+                {
+                    usbd_ctrl_error(ctx);
+                    return;
+                }
                 usbd_ctrl_send_status(ctx);
             }
             else
@@ -139,14 +144,27 @@ static void usbd_setup_config(usbd_context_t *ctx, usb_setup_packet_t *setup)
             if (cfg == 0)
             {
                 ctx->current_state = USB_DEVICE_STATE_ADDRESSED;
+                ctx->restore_state = USB_DEVICE_STATE_ADDRESSED;
                 ctx->current_config = cfg;
-                usbd_hjalmar_class_deinit(ctx, cfg);
+                if (usbd_hjalmar_class_deinit(ctx, cfg))
+                {
+                    usbd_ctrl_error(ctx);
+                    return;
+                }
                 usbd_ctrl_send_status(ctx);
             }
             else if (cfg != ctx->current_config)
             {
                 ctx->current_config = cfg;
-                usbd_hjalmar_class_init(ctx, cfg);
+                if (usbd_hjalmar_class_init(ctx, cfg))
+                {
+                    usbd_ctrl_error(ctx);
+                    return;
+                }
+                usbd_ctrl_send_status(ctx);
+            }
+            else
+            {
                 usbd_ctrl_send_status(ctx);
             }
         }
@@ -505,8 +523,25 @@ void usbd_disconnect(usbd_context_t *ctx)
     usbd_ep_close(ctx, USBD_EP_CDC_CMD);
 }
 
+int usbd_is_ready(void)
+{
+    return (hjalmar_ctx.current_state == USB_DEVICE_STATE_CONFIGURED);
+}
+
+int usbd_transmit(uint8_t epnum, uint8_t *xfer_buff, uint16_t length)
+{
+    usbd_context_t *ctx = &hjalmar_ctx;
+
+    if (ctx->current_state == USB_DEVICE_STATE_CONFIGURED)
+    {
+        return usbd_ep_transmit(ctx, epnum, xfer_buff, length);
+    }
+
+    return HJALMAR_FAILED;
+}
+
 void usbd_ctrl_transmit(usbd_context_t *ctx,
-                        const uint8_t *xfer_buff, uint16_t length)
+                        uint8_t *xfer_buff, uint16_t length)
 {
     ctx->ep0_tx.total_length = length;
     ctx->ep0_tx.rem_length = length;

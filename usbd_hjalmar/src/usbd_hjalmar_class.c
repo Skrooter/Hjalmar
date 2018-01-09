@@ -17,15 +17,29 @@ static struct {
 };
 
 static uint8_t tx_busy = 0;
-
-static uint8_t midi_rx_idx = 0;
-static uint8_t cdc_rx_idx = 0;
-static uint8_t *midi_rx_buffer = NULL;
-static uint8_t *cdc_rx_buffer = NULL;
-static uint16_t midi_rx_size = 0;
-static uint16_t cdc_rx_size = 0;
-
 static usb_hjalmar_t *hjalmar = NULL;
+
+static int usb_transmit(uint8_t epnum, uint8_t *data, uint16_t length)
+{
+    int ret = HJALMAR_BUSY;
+
+    if (tx_busy)
+    {
+        goto error;
+    }
+
+    ret = usbd_transmit(epnum, data, length);
+    if (ret)
+    {
+        goto error;
+    }
+
+    tx_busy = 1;
+
+error:
+
+    return ret;
+}
 
 int usbd_hjalmar_class_init(usbd_context_t *ctx, uint8_t cfgidx)
 {
@@ -71,17 +85,13 @@ int usbd_hjalmar_class_init(usbd_context_t *ctx, uint8_t cfgidx)
     if ((ctx != NULL) && (hjalmar != NULL))
     {
         ctx->class_data = (void *)hjalmar;
-        midi_rx_idx = 0;
-        cdc_rx_idx = 0;
 
-        midi_rx_buffer = hjalmar->midi_rx_buffers[midi_rx_idx];
-        midi_rx_size = hjalmar->midi_rx_sizes[midi_rx_idx];
-
-        cdc_rx_buffer = hjalmar->cdc_rx_buffers[cdc_rx_idx];
-        cdc_rx_size = hjalmar->cdc_rx_sizes[cdc_rx_idx];
-
-        usbd_ep_receive(ctx, USBD_EP_MIDI_RX, midi_rx_buffer, midi_rx_size);
-        usbd_ep_receive(ctx, USBD_EP_CDC_RX, cdc_rx_buffer, cdc_rx_size);
+        usbd_ep_receive(ctx, USBD_EP_MIDI_RX, hjalmar->midi_rx_buffer, hjalmar->midi_rx_size);
+        usbd_ep_receive(ctx, USBD_EP_CDC_RX, hjalmar->cdc_rx_buffer, hjalmar->cdc_rx_size);
+    }
+    else
+    {
+        ret = HJALMAR_FAILED;
     }
 
 error:
@@ -124,14 +134,7 @@ int usbd_hjalmar_class_deinit(usbd_context_t *ctx, uint8_t cfgidx)
         goto error;
     }
 
-    hjalmar = NULL;
-
-    midi_rx_idx = 0;
-    cdc_rx_idx = 0;
-    midi_rx_buffer = NULL;
-    cdc_rx_buffer = NULL;
-    midi_rx_size = 0;
-    cdc_rx_size = 0;
+    ctx->class_data = NULL;
 
 error:
 
@@ -171,7 +174,7 @@ int usbd_hjalmar_setup(usbd_context_t *ctx,
         break;
     }
 
-    return 0;
+    return HJALMAR_OK;
 }
 
 void usbd_midi_tx(usbd_context_t *ctx)
@@ -195,14 +198,10 @@ void usbd_midi_rx(usbd_context_t *ctx, uint16_t length)
     {
         if (hj->midi_rx_complete)
         {
-            hj->midi_rx_complete(midi_rx_buffer, length, hj->midi_user);
-            midi_rx_idx = (midi_rx_idx + 1) % hjalmar->midi_num_of_buffers;
+            hj->midi_rx_complete(hj->midi_rx_buffer, length, hj->midi_user);
         }
 
-        midi_rx_buffer = hjalmar->midi_rx_buffers[midi_rx_idx];
-        midi_rx_size = hjalmar->midi_rx_sizes[midi_rx_idx];
-
-        usbd_ep_receive(ctx, USBD_EP_MIDI_RX, midi_rx_buffer, midi_rx_size);
+        usbd_ep_receive(ctx, USBD_EP_MIDI_RX, hj->midi_rx_buffer, hj->midi_rx_size);
     }
 }
 
@@ -227,78 +226,21 @@ void usbd_cdc_rx(usbd_context_t *ctx, uint16_t length)
     {
         if (hj->cdc_rx_complete)
         {
-            hj->cdc_rx_complete(cdc_rx_buffer, length, hj->cdc_user);
-            cdc_rx_idx = (cdc_rx_idx + 1) % hjalmar->cdc_num_of_buffers;
+            hj->cdc_rx_complete(hj->cdc_rx_buffer, length, hj->cdc_user);
         }
 
-        cdc_rx_buffer = hjalmar->cdc_rx_buffers[cdc_rx_idx];
-        cdc_rx_size = hjalmar->cdc_rx_sizes[cdc_rx_idx];
-
-        usbd_ep_receive(ctx, USBD_EP_CDC_RX, cdc_rx_buffer, cdc_rx_size);
+        usbd_ep_receive(ctx, USBD_EP_CDC_RX, hj->cdc_rx_buffer, hj->cdc_rx_size);
     }
 }
 
 int usb_midi_transmit(uint8_t *data, uint16_t length)
 {
-    int ret = HJALMAR_OK;
-    usbd_context_t *ctx = usbd_get_context();
-
-    if (ctx == NULL)
-    {
-        ret = HJALMAR_FAILED;
-        goto error;
-    }
-
-    if ((ctx->current_state != USB_DEVICE_STATE_CONFIGURED) ||
-        (ctx->class_data == NULL))
-    {
-        ret = HJALMAR_FAILED;
-        goto error;
-    }
-
-    if (tx_busy)
-    {
-        ret = HJALMAR_BUSY;
-        goto error;
-    }
-
-    tx_busy = 1;
-    usbd_ep_transmit(ctx, USBD_EP_MIDI_TX, data, length);
-
-error:
-
-    return ret;
+    return usb_transmit(USBD_EP_MIDI_TX, data, length);
 }
 
 int usb_cdc_transmit(uint8_t *data, uint16_t length)
 {
-    int ret = HJALMAR_OK;
-    usbd_context_t *ctx = usbd_get_context();
-
-    if (ctx == NULL)
-    {
-        ret = HJALMAR_FAILED;
-        goto error;
-    }
-
-    if (ctx->current_state != USB_DEVICE_STATE_CONFIGURED)
-    {
-        ret = HJALMAR_FAILED;
-        goto error;
-    }
-
-    if (tx_busy)
-    {
-        ret = HJALMAR_BUSY;
-        goto error;
-    }
-
-    tx_busy = 1;
-    usbd_ep_transmit(ctx, USBD_EP_CDC_TX, data, length);
-
-error:
-
-    return ret;
+    return usb_transmit(USBD_EP_CDC_TX, data, length);
 }
 
 int usb_hjalmar_init(usb_hjalmar_t *usb_hjalmar)
@@ -312,26 +254,13 @@ int usb_hjalmar_init(usb_hjalmar_t *usb_hjalmar)
     }
 
     /* Check if we have valid buffers */
-    if ((usb_hjalmar->midi_num_of_buffers != 0) ||
-        (usb_hjalmar->cdc_num_of_buffers != 0))
+    if ((usb_hjalmar->midi_rx_buffer == NULL) ||
+        (usb_hjalmar->midi_rx_size == 0) ||
+        (usb_hjalmar->cdc_rx_buffer == NULL) ||
+        (usb_hjalmar->cdc_rx_size == 0))
     {
-        for (int i = 0; i < usb_hjalmar->midi_num_of_buffers; i++)
-        {
-            if (usb_hjalmar->midi_rx_buffers[i] == NULL)
-            {
-                ret = HJALMAR_FAILED;
-                goto error;
-            }
-        }
-
-        for (int i = 0; i < usb_hjalmar->cdc_num_of_buffers; i++)
-        {
-            if (usb_hjalmar->cdc_rx_buffers[i] == NULL)
-            {
-                ret = HJALMAR_FAILED;
-                goto error;
-            }
-        }
+        ret = HJALMAR_INVALID_ARGUMENT;
+        goto error;
     }
 
     ret = usbd_init();

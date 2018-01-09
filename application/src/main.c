@@ -57,7 +57,9 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-#include "stdlib.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "audio_gen.h"
 #include "audio_interface.h"
@@ -77,15 +79,15 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-static uint8_t test_0[64];
-static uint8_t test_1[64];
+static uint8_t test_0[256];
+static uint8_t test_1[256];
 static uint8_t msg[256];
 static uint16_t rec_len = 0;
 
 static void vcom_echo(void *data)
 {
     uint16_t len = *((uint16_t *)data);
-    int msg_len = snprintf(msg, sizeof(msg), "Received %u characters\n\r", len);
+    int msg_len = snprintf((char *)msg, sizeof(msg), "Received %u characters\n\r", len);
 
     usb_cdc_transmit(msg, msg_len);
     HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
@@ -97,17 +99,21 @@ static void vcom_rx_complete(uint8_t *data, uint16_t len, void *usr)
     (void)data;
     rec_len = len;
     work_queue_add(vcom_echo, &rec_len);
+    HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 }
 
 static uint64_t ticks_ms = 0;
 static usb_hjalmar_t hj = {
-    .midi_rx_buffers[0] = &test_0[0],
-    .cdc_rx_buffers[0] = &test_1[0],
-    .midi_rx_sizes[0] = 64,
-    .cdc_rx_sizes[0] = 64,
-    .midi_num_of_buffers = 1,
-    .cdc_num_of_buffers = 1,
+    .midi_rx_buffer = &test_0[0],
+    .cdc_rx_buffer = &test_1[0],
+    .midi_rx_size = 256,
+    .cdc_rx_size = 256,
+    .midi_user = NULL,
+    .cdc_user = NULL,
+    .midi_rx_complete = NULL,
+    .midi_tx_complete = NULL,
     .cdc_rx_complete = vcom_rx_complete,
+    .cdc_tx_complete = NULL,
 };
 
 /* USER CODE END PV */

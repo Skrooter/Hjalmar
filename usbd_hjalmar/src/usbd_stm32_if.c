@@ -232,9 +232,10 @@ int usbd_set_address(usbd_context_t *ctx, uint8_t dev_addr)
 }
 
 int usbd_ep_transmit(usbd_context_t *ctx, uint8_t ep_addr,
-                     const uint8_t *tx_buff, uint16_t size)
+                     uint8_t *tx_buff, uint16_t size)
 {
     (void)ctx;
+    HAL_PCD_EP_Flush(&hpcd_hjalmar, ep_addr);
 
     HAL_StatusTypeDef hal_status = HAL_PCD_EP_Transmit(&hpcd_hjalmar, ep_addr, tx_buff, size);
 

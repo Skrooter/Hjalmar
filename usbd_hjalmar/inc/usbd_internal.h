@@ -54,19 +54,19 @@
 #define USB_REQ_SET_INTERFACE           0x0B
 #define USB_REQ_SYNCH_FRAME             0x0C
 
-#define USBD_EP_CTRL_TX                 USB_EP_TX(0)
-#define USBD_EP_CTRL_RX                 USB_EP_RX(0)
+#define USBD_EP_CTRL_TX                 0x80 //USB_EP_TX(0)
+#define USBD_EP_CTRL_RX                 0x00 //USB_EP_RX(0)
 
-#define USBD_EP_MIDI_TX                 USB_EP_TX(1)
-#define USBD_EP_MIDI_RX                 USB_EP_RX(1)
+#define USBD_EP_MIDI_TX                 0x81 //USB_EP_TX(1)
+#define USBD_EP_MIDI_RX                 0x01 //USB_EP_RX(1)
 
-#define USBD_EP_CDC_TX                  USB_EP_TX(2)
-#define USBD_EP_CDC_RX                  USB_EP_RX(2)
-#define USBD_EP_CDC_CMD                 USB_EP_TX(3)
+#define USBD_EP_CDC_TX                  0x82 //USB_EP_TX(2)
+#define USBD_EP_CDC_RX                  0x02 //USB_EP_RX(2)
+#define USBD_EP_CDC_CMD                 0x83 //USB_EP_TX(3)
 
-#define USBD_CTRL_PACKET_SIZE           64
-#define USBD_BULK_PACKET_SIZE           64
-#define USBD_INT_PACKET_SIZE            8
+#define USBD_CTRL_PACKET_SIZE           0x40
+#define USBD_BULK_PACKET_SIZE           0x40
+#define USBD_INT_PACKET_SIZE            0x08
 
 #define USBD_EP_CTRL_TYPE               0
 #define USBD_EP_ISOC_TYPE               1
@@ -97,9 +97,9 @@ typedef struct {
 typedef struct {
     volatile uint32_t current_state;
     volatile uint32_t restore_state;
-    volatile uint32_t remote_wake_armed;
-    uint8_t address;
-    uint8_t current_config;
+     uint32_t remote_wake_armed;
+     uint8_t address;
+     uint8_t current_config;
     void *dev_data;
     void *class_data;
     usbd_endpoint_t ep0_tx;
@@ -160,7 +160,7 @@ void usbd_resume(usbd_context_t *ctx);
 void usbd_connect(usbd_context_t *ctx);
 void usbd_disconnect(usbd_context_t *ctx);
 void usbd_ctrl_transmit(usbd_context_t *ctx,
-                        const uint8_t *xfer_buff, uint16_t length);
+                        uint8_t *xfer_buff, uint16_t length);
 void usbd_ctrl_receive(usbd_context_t *ctx,
                        uint8_t *xfer_buff, uint16_t length);
 
@@ -169,8 +169,12 @@ void usbd_ctrl_receive(usbd_context_t *ctx,
 /*------------------------------------------------------------------------------*/
 
 usbd_context_t *usbd_get_context(void);
+
+int usbd_is_ready(void);
+int usbd_transmit(uint8_t epnum, uint8_t *xfer_buff, uint16_t length);
+
 int usbd_ep_transmit(usbd_context_t *ctx, uint8_t ep_addr,
-                     const uint8_t *tx_buff, uint16_t size);
+                     uint8_t *tx_buff, uint16_t size);
 int usbd_ep_receive(usbd_context_t *ctx, uint8_t ep_addr,
                     uint8_t *rx_buff, uint16_t size);
 int usbd_init(void);
