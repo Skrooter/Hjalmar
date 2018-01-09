@@ -430,8 +430,8 @@ void usbd_data_tx_stage(usbd_context_t *ctx, uint8_t epnum, uint8_t *xfer_buff)
     }
     else if (ctx->current_state == USB_DEVICE_STATE_CONFIGURED)
     {
-        switch (epnum) {
-        case USBD_EP_MIDI_RX:
+        switch (USB_EP_TX(epnum)) {
+        case USBD_EP_MIDI_TX:
             usbd_midi_tx(ctx);
             break;
         case USBD_EP_CDC_TX:

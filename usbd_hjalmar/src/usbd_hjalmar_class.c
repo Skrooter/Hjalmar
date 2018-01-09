@@ -196,7 +196,7 @@ void usbd_midi_rx(usbd_context_t *ctx, uint16_t length)
         if (hj->midi_rx_complete)
         {
             hj->midi_rx_complete(midi_rx_buffer, length, hj->midi_user);
-            midi_rx_idx++;
+            midi_rx_idx = (midi_rx_idx + 1) % hjalmar->midi_num_of_buffers;
         }
 
         midi_rx_buffer = hjalmar->midi_rx_buffers[midi_rx_idx];
@@ -228,13 +228,13 @@ void usbd_cdc_rx(usbd_context_t *ctx, uint16_t length)
         if (hj->cdc_rx_complete)
         {
             hj->cdc_rx_complete(cdc_rx_buffer, length, hj->cdc_user);
-            cdc_rx_idx++;
+            cdc_rx_idx = (cdc_rx_idx + 1) % hjalmar->cdc_num_of_buffers;
         }
 
         cdc_rx_buffer = hjalmar->cdc_rx_buffers[cdc_rx_idx];
         cdc_rx_size = hjalmar->cdc_rx_sizes[cdc_rx_idx];
 
-        usbd_ep_receive(ctx, USBD_EP_MIDI_RX, midi_rx_buffer, midi_rx_size);
+        usbd_ep_receive(ctx, USBD_EP_CDC_RX, cdc_rx_buffer, cdc_rx_size);
     }
 }
 

@@ -79,6 +79,25 @@
 
 static uint8_t test_0[64];
 static uint8_t test_1[64];
+static uint8_t msg[256];
+static uint16_t rec_len = 0;
+
+static void vcom_echo(void *data)
+{
+    uint16_t len = *((uint16_t *)data);
+    int msg_len = snprintf(msg, sizeof(msg), "Received %u characters\n\r", len);
+
+    usb_cdc_transmit(msg, msg_len);
+    HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+}
+
+static void vcom_rx_complete(uint8_t *data, uint16_t len, void *usr)
+{
+    (void)usr;
+    (void)data;
+    rec_len = len;
+    work_queue_add(vcom_echo, &rec_len);
+}
 
 static uint64_t ticks_ms = 0;
 static usb_hjalmar_t hj = {
@@ -88,6 +107,7 @@ static usb_hjalmar_t hj = {
     .cdc_rx_sizes[0] = 64,
     .midi_num_of_buffers = 1,
     .cdc_num_of_buffers = 1,
+    .cdc_rx_complete = vcom_rx_complete,
 };
 
 /* USER CODE END PV */
