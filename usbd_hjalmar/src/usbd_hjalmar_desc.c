@@ -19,10 +19,10 @@ static uint8_t usbd_hjalmar_dev_desc[USB_DEVICE_DESC_SIZE] = {
     USB_DEVICE_DESC_TYPE,
     0x00,
     0x02,
-    0xEF,
-    0x02,
-    0x01,
-    0x40,
+    0x00,
+    0x00,
+    0x00,
+    USBD_CTRL_PACKET_SIZE,
     LOBYTE(USBD_VID),
     HIBYTE(USBD_VID),
     LOBYTE(USBD_PID),
@@ -42,9 +42,9 @@ static uint8_t usbd_hjalmar_cfg_desc[USBD_CFG_SIZE] = {
     USB_CONFIG_DESC_TYPE,               /* bDescriptorType: Configuration */
     LOBYTE(USBD_CFG_SIZE),              /* wTotalLength:no of returned bytes */
     HIBYTE(USBD_CFG_SIZE),
-    0x04,                               /* bNumInterfaces: 4 interface */
+    USBD_NUM_INTERFACES,                /* bNumInterfaces: 4 interface */
     0x01,                               /* bConfigurationValue: Configuration value */
-    0x00,                               /* iConfiguration: Index of string descriptor describing the configuration */
+    USBD_IDX_CONFIG_STR,                /* iConfiguration: Index of string descriptor describing the configuration */
     0xC0,                               /* bmAttributes: self powered */
     0x32,                               /* MaxPower 0 mA */
 
@@ -73,7 +73,7 @@ static uint8_t usbd_hjalmar_cfg_desc[USBD_CFG_SIZE] = {
     0x01,                               /* bInterfaceClass: Audio Class */
     0x01,                               /* bInterfaceSubClass: MIDI streaming */
     0x00,                               /* bInterfaceProtocol */
-    USBD_IDX_MIDI_IF_STR,                /* iInterface: */
+    0,                /* iInterface: */
 
     /* MIDI Interface Header Descriptor */
     USBD_MIDI_CONTROL_SIZE,             /* bLength */
@@ -95,7 +95,7 @@ static uint8_t usbd_hjalmar_cfg_desc[USBD_CFG_SIZE] = {
     0x01,                               /* bInterfaceClass: Audio Class */
     0x03,                               /* bInterfaceSubClass: MIDI streaming */
     0x00,                               /* bInterfaceProtocol */
-    USBD_IDX_MIDI_IF_STR,                /* iInterface: */
+    0,                /* iInterface: */
 
     /* MIDI Interface Header Descriptor */
     USBD_MIDI_STREAM_SIZE,              /* bLength */
@@ -107,7 +107,7 @@ static uint8_t usbd_hjalmar_cfg_desc[USBD_CFG_SIZE] = {
     HIBYTE(54),                         /* wTotalLenght */
 
     /* MIDI IN Jack Embedded Descriptor */
-    USBD_MIDI_IN_JACK,                  /* bLength */
+    USBD_MIDI_JACK_IN_SIZE,             /* bLength */
     USBD_MIDI_CS_IF_DESC_TYPE,          /* bDescriptorType */
     USBD_MIDI_IN_JACK,                  /* bDescriptorSubType */
     USBD_MIDI_JACK_EMBEDDED,            /* JackType */
@@ -201,37 +201,37 @@ static uint8_t usbd_hjalmar_cfg_desc[USBD_CFG_SIZE] = {
     0x02,                               /* bInterfaceClass: Communication Interface Class */
     0x02,                               /* bInterfaceSubClass: Abstract Control Model */
     0x01,                               /* bInterfaceProtocol: Common AT commands */
-    USBD_IDX_CDC_IF_STR,                /* iInterface: */
+    0,                /* iInterface: */
 
     /*Header Functional Descriptor*/
-    0x05,                               /* bLength: Endpoint Descriptor size */
+    USBD_CDC_HEADER_SIZE,               /* bLength: Endpoint Descriptor size */
     USBD_CDC_CS_IF_DESC_TYPE,           /* bDescriptorType: CS_INTERFACE */
     0x00,                               /* bDescriptorSubtype: Header Func Desc */
     0x10,                               /* bcdCDC: spec release number */
     0x01,
 
     /*Call Management Functional Descriptor*/
-    0x05,                               /* bFunctionLength */
+    USBD_CDC_CALL_MAN_SIZE,             /* bFunctionLength */
     USBD_CDC_CS_IF_DESC_TYPE,           /* bDescriptorType: CS_INTERFACE */
     0x01,                               /* bDescriptorSubtype: Call Management Func Desc */
     0x00,                               /* bmCapabilities: D0+D1 */
     0x01,                               /* bDataInterface: 1 */
 
     /*ACM Functional Descriptor*/
-    0x04,                               /* bFunctionLength */
+    USBD_CDC_ACM_SIZE,                  /* bFunctionLength */
     USBD_CDC_CS_IF_DESC_TYPE,           /* bDescriptorType: CS_INTERFACE */
     0x02,                               /* bDescriptorSubtype: Abstract Control Management desc */
     0x02,                               /* bmCapabilities */
 
     /*Union Functional Descriptor*/
-    0x05,                               /* bFunctionLength */
+    USBD_CDC_UNION_SIZE,                /* bFunctionLength */
     USBD_CDC_CS_IF_DESC_TYPE,           /* bDescriptorType: CS_INTERFACE */
     0x06,                               /* bDescriptorSubtype: Union func desc */
     0x00,                               /* bMasterInterface: Communication class interface */
     0x01,                               /* bSlaveInterface0: Data Class Interface */
 
     /*Endpoint 2 Descriptor*/
-    0x07,                               /* bLength: Endpoint Descriptor size */
+    USB_ENDPOINT_DESC_SIZE,             /* bLength: Endpoint Descriptor size */
     USB_ENDPOINT_DESC_TYPE,             /* bDescriptorType: Endpoint */
     USBD_EP_CDC_CMD,                    /* bEndpointAddress */
     0x03,                               /* bmAttributes: Interrupt */
@@ -242,7 +242,7 @@ static uint8_t usbd_hjalmar_cfg_desc[USBD_CFG_SIZE] = {
 /*---------------------------------------------------------------------------*/
 
     /*Data class interface descriptor*/
-    0x09,                               /* bLength: Endpoint Descriptor size */
+    USB_INTERFACE_DESC_SIZE,            /* bLength: Endpoint Descriptor size */
     USB_INTERFACE_DESC_TYPE,            /* bDescriptorType: */
     0x03,                               /* bInterfaceNumber: Number of Interface */
     0x00,                               /* bAlternateSetting: Alternate setting */
@@ -253,7 +253,7 @@ static uint8_t usbd_hjalmar_cfg_desc[USBD_CFG_SIZE] = {
     USBD_IDX_CDC_IF_STR,                /* iInterface: */
 
     /*Endpoint OUT Descriptor*/
-    0x07,                               /* bLength: Endpoint Descriptor size */
+    USB_ENDPOINT_DESC_SIZE,             /* bLength: Endpoint Descriptor size */
     USB_ENDPOINT_DESC_TYPE,             /* bDescriptorType: Endpoint */
     USBD_EP_CDC_RX,                     /* bEndpointAddress */
     0x02,                               /* bmAttributes: Bulk */
@@ -262,7 +262,7 @@ static uint8_t usbd_hjalmar_cfg_desc[USBD_CFG_SIZE] = {
     0x00,                               /* bInterval: ignore for Bulk transfer */
 
     /*Endpoint IN Descriptor*/
-    0x07,                               /* bLength: Endpoint Descriptor size */
+    USB_ENDPOINT_DESC_SIZE,             /* bLength: Endpoint Descriptor size */
     USB_ENDPOINT_DESC_TYPE,             /* bDescriptorType: Endpoint */
     USBD_EP_CDC_TX,                     /* bEndpointAddress */
     0x02,                               /* bmAttributes: Bulk */
@@ -304,7 +304,7 @@ uint8_t *usbd_get_dev_desc(uint16_t *length)
 
 uint8_t *usbd_get_cfg_desc(uint8_t cfg_no, uint16_t *length)
 {
-	(void)cfg_no;
+    (void)cfg_no;
     *length = USBD_CFG_SIZE;
     return usbd_hjalmar_cfg_desc;
 }

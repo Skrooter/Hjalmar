@@ -18,8 +18,8 @@
 #define USB_ENDPOINT_DESC_TYPE          5
 #define USB_DEVICE_QUALIFIER_DESC_TYPE  6
 #define USB_LANGID_DESC_TYPE            USB_STRING_DESC_TYPE
-#define USB_IAD_DESC_TYPE               11
-#define USB_BOS_DESC_TYPE               15
+#define USB_IAD_DESC_TYPE               0x0b
+#define USB_BOS_DESC_TYPE               0x0f
 #define USB_CS_INTERFACE_TYPE           0x24
 #define USB_CS_ENDPOINT_TYPE            0x25
 
@@ -60,6 +60,14 @@
 #define USBD_MIDI_JACK_OUT_SIZE         9
 #define USBD_MIDI_ENDPOINT_SIZE         5
 
+#define USBD_MIDI_SIZE                  (2 * USB_INTERFACE_DESC_SIZE) + \
+                                        USBD_MIDI_CONTROL_SIZE + \
+                                        USBD_MIDI_STREAM_SIZE + \
+                                        (2 * USBD_MIDI_JACK_IN_SIZE) + \
+                                        (2 * USBD_MIDI_JACK_OUT_SIZE) + \
+                                        (2 * USB_ENDPOINT_DESC_SIZE) + \
+                                        (2 * USBD_MIDI_ENDPOINT_SIZE)
+
 #define USBD_MIDI_IN_JACK               0x02
 #define USBD_MIDI_OUT_JACK              0x03
 
@@ -77,6 +85,14 @@
 #define USBD_CDC_UNION_SIZE             5
 #define USBD_CDC_CALL_MAN_SIZE          5
 
+#define USBD_CDC_SIZE                   (2 * USB_INTERFACE_DESC_SIZE) + \
+                                        USBD_CDC_HEADER_SIZE + \
+                                        USBD_CDC_CALL_MAN_SIZE + \
+                                        USBD_CDC_ACM_SIZE + \
+                                        USBD_CDC_UNION_SIZE + \
+                                        (3 * USB_ENDPOINT_DESC_SIZE)
+
+
 #define USBD_CDC_HEADER_SUBTYPE         0x00
 #define USBD_CDC_ACM_SUBTYPE            0x02
 #define USBD_CDC_UNION_SUBTYPE          0x06
@@ -90,7 +106,6 @@
 /*------------------------------------------------------------------------------*/
 
 uint8_t *usbd_get_dev_desc(uint16_t *length);
-uint8_t *usbd_hjalmar_dev_qualifier_desc(uint16_t *length);
 uint8_t *usbd_get_cfg_desc(uint8_t cfg_no, uint16_t *length);
 uint8_t *usbd_get_langid_str(uint16_t *length);
 uint8_t *usbd_get_mfc_str(uint16_t *length);

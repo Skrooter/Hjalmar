@@ -75,7 +75,7 @@ void HAL_PCD_DataOutStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
 /* Tx complete callback */
 void HAL_PCD_DataInStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
 {
-    uint8_t *xfer_buff = hpcd->OUT_ep[0xF & epnum].xfer_buff;
+    uint8_t *xfer_buff = hpcd->IN_ep[0xF & epnum].xfer_buff;
 
     usbd_data_tx_stage((usbd_context_t *)hpcd->pData, epnum, xfer_buff);
 }
@@ -172,7 +172,8 @@ int usbd_ep_open(usbd_context_t *ctx, uint8_t ep_addr,
                  uint8_t ep_type, uint16_t ep_mps)
 {
     (void)ctx;
-    HAL_StatusTypeDef hal_status = HAL_PCD_EP_Open(&hpcd_hjalmar, ep_addr, ep_type, ep_mps);
+
+    HAL_StatusTypeDef hal_status = HAL_PCD_EP_Open(&hpcd_hjalmar, ep_addr, ep_mps, ep_type);
 
     return stm32_to_hjalmar_error(hal_status);
 }
@@ -231,9 +232,10 @@ int usbd_set_address(usbd_context_t *ctx, uint8_t dev_addr)
 }
 
 int usbd_ep_transmit(usbd_context_t *ctx, uint8_t ep_addr,
-                     uint8_t *tx_buff, uint16_t size)
+                     const uint8_t *tx_buff, uint16_t size)
 {
     (void)ctx;
+
     HAL_StatusTypeDef hal_status = HAL_PCD_EP_Transmit(&hpcd_hjalmar, ep_addr, tx_buff, size);
 
     return stm32_to_hjalmar_error(hal_status);

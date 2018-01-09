@@ -7,28 +7,28 @@ static usbd_context_t hjalmar_ctx = { 0 };
 
 static void usbd_ctrl_error(usbd_context_t *ctx)
 {
-    usbd_ep_stall(ctx, USBD_EP_CTRL_TX);
-    usbd_ep_stall(ctx, USBD_EP_CTRL_RX);
+    usbd_ep_stall(ctx, 0x00);
+    usbd_ep_stall(ctx, 0x80);
 }
 
 static void usbd_ctrl_send_status(usbd_context_t *ctx)
 {
     ctx->ep0_state = USBD_EP0_STATUS_TX;
 
-    usbd_ep_transmit(ctx, USBD_EP_CTRL_TX, NULL, 0);
+    usbd_ep_transmit(ctx, 0, NULL, 0);
 }
 
 static void usbd_ctrl_recv_status(usbd_context_t *ctx)
 {
     ctx->ep0_state = USBD_EP0_STATUS_RX;
 
-    usbd_ep_receive(ctx, USBD_EP_CTRL_RX, NULL, 0);
+    usbd_ep_receive(ctx, 0, NULL, 0);
 }
 
 static void usbd_get_descriptor(usbd_context_t *ctx, usb_setup_packet_t *setup)
 {
     uint16_t length = 0;
-    uint8_t *desc = NULL;
+    const uint8_t *desc;
 
     switch (setup->wValue >> 8)
     {
@@ -92,6 +92,7 @@ static void usbd_setup_address(usbd_context_t *ctx, usb_setup_packet_t *setup)
         {
             ctx->address = (uint8_t)(setup->wValue) & 0x7F;
             usbd_set_address(ctx, ctx->address);
+            usbd_ctrl_send_status(ctx);
 
             if (ctx->address != 0)
             {
@@ -371,12 +372,10 @@ void usbd_data_rx_stage(usbd_context_t *ctx, uint8_t epnum,
     {
         if (ctx->ep0_state == USBD_EP0_DATA_RX)
         {
-            usbd_endpoint_t *ep = &ctx->ep0_rx;
-
-            if (ep->rem_length > ep->max_packet_length)
+            if (ctx->ep0_rx.rem_length > ctx->ep0_rx.max_packet_length)
             {
-                ep->rem_length -= ep->max_packet_length;
-                rx_count = MIN(ep->rem_length, ep->max_packet_length);
+                ctx->ep0_rx.rem_length -= ctx->ep0_rx.max_packet_length;
+                rx_count = MIN(ctx->ep0_rx.rem_length, ctx->ep0_rx.max_packet_length);
 
                 usbd_ep_receive(ctx, epnum, xfer_buff, rx_count);
             }
@@ -407,20 +406,18 @@ void usbd_data_tx_stage(usbd_context_t *ctx, uint8_t epnum, uint8_t *xfer_buff)
     {
         if (ctx->ep0_state == USBD_EP0_DATA_TX)
         {
-        	usbd_endpoint_t *ep = &ctx->ep0_tx;
-
-            if (ep->rem_length > ep->max_packet_length)
+            if (ctx->ep0_tx.rem_length > ctx->ep0_tx.max_packet_length)
             {
-                ep->rem_length -= ep->max_packet_length;
-                uint16_t tx_count = MIN(ep->rem_length, ep->max_packet_length);
+                ctx->ep0_tx.rem_length -= ctx->ep0_tx.max_packet_length;
+                uint16_t tx_count = MIN(ctx->ep0_tx.rem_length, ctx->ep0_tx.max_packet_length);
 
                 usbd_ep_transmit(ctx, epnum, xfer_buff, tx_count);
 
                 usbd_ep_receive(ctx, 0, NULL, 0);
             }
-            else if (ep->rem_length == ep->max_packet_length)
+            else if (ctx->ep0_tx.rem_length == ctx->ep0_tx.max_packet_length)
             {
-                ep->rem_length = 0;
+                ctx->ep0_tx.rem_length = 0;
                 usbd_ctrl_send_status(ctx);
 
                 usbd_ctrl_recv_status(ctx);
@@ -459,6 +456,7 @@ void usbd_reset(usbd_context_t *ctx)
     ctx->remote_wake_armed = 0;
     ctx->address = 0;
     ctx->current_config = 0;
+    ctx->ep0_state = USBD_EP0_IDLE;
 
     usbd_ep_close(ctx, USBD_EP_MIDI_TX);
     usbd_ep_close(ctx, USBD_EP_MIDI_RX);
@@ -470,6 +468,9 @@ void usbd_reset(usbd_context_t *ctx)
                  USBD_EP_CTRL_TYPE, USBD_CTRL_PACKET_SIZE);
     usbd_ep_open(ctx, USBD_EP_CTRL_RX,
                  USBD_EP_CTRL_TYPE, USBD_CTRL_PACKET_SIZE);
+
+    ctx->ep0_tx.max_packet_length = USBD_CTRL_PACKET_SIZE;
+    ctx->ep0_rx.max_packet_length = USBD_CTRL_PACKET_SIZE;
 }
 
 void usbd_suspend(usbd_context_t *ctx)
@@ -505,7 +506,7 @@ void usbd_disconnect(usbd_context_t *ctx)
 }
 
 void usbd_ctrl_transmit(usbd_context_t *ctx,
-                        uint8_t *xfer_buff, uint16_t length)
+                        const uint8_t *xfer_buff, uint16_t length)
 {
     ctx->ep0_tx.total_length = length;
     ctx->ep0_tx.rem_length = length;

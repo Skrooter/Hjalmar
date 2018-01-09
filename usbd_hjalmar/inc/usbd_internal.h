@@ -160,7 +160,7 @@ void usbd_resume(usbd_context_t *ctx);
 void usbd_connect(usbd_context_t *ctx);
 void usbd_disconnect(usbd_context_t *ctx);
 void usbd_ctrl_transmit(usbd_context_t *ctx,
-                        uint8_t *xfer_buff, uint16_t length);
+                        const uint8_t *xfer_buff, uint16_t length);
 void usbd_ctrl_receive(usbd_context_t *ctx,
                        uint8_t *xfer_buff, uint16_t length);
 
@@ -170,7 +170,7 @@ void usbd_ctrl_receive(usbd_context_t *ctx,
 
 usbd_context_t *usbd_get_context(void);
 int usbd_ep_transmit(usbd_context_t *ctx, uint8_t ep_addr,
-                     uint8_t *tx_buff, uint16_t size);
+                     const uint8_t *tx_buff, uint16_t size);
 int usbd_ep_receive(usbd_context_t *ctx, uint8_t ep_addr,
                     uint8_t *rx_buff, uint16_t size);
 int usbd_init(void);
