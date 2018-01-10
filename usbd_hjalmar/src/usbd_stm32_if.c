@@ -6,6 +6,15 @@
 #include "usbd_hjalmar_desc.h"
 #include "error_codes.h"
 
+#define VBUS_FS_Pin                     GPIO_PIN_9
+#define VBUS_FS_GPIO_Port               GPIOA
+#define OTG_FS_ID_Pin                   GPIO_PIN_10
+#define OTG_FS_ID_GPIO_Port             GPIOA
+#define OTG_FS_DM_Pin                   GPIO_PIN_11
+#define OTG_FS_DM_GPIO_Port             GPIOA
+#define OTG_FS_DP_Pin                   GPIO_PIN_12
+#define OTG_FS_DP_GPIO_Port             GPIOA
+
 PCD_HandleTypeDef hpcd_hjalmar;
 
 void _Error_Handler(char * file, int line);
@@ -33,12 +42,17 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
     GPIO_InitTypeDef GPIO_InitStruct;
     if(pcdHandle->Instance == USB_OTG_FS)
     {
-        GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
+        GPIO_InitStruct.Pin = VBUS_FS_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        HAL_GPIO_Init(VBUS_FS_GPIO_Port, &GPIO_InitStruct);
+
+        GPIO_InitStruct.Pin = OTG_FS_ID_Pin | OTG_FS_DM_Pin | OTG_FS_DP_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
-        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+        HAL_GPIO_Init(OTG_FS_DM_GPIO_Port, &GPIO_InitStruct);
 
         __HAL_RCC_USB_OTG_FS_CLK_ENABLE();
 
@@ -51,7 +65,10 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef* pcdHandle)
 {
     if(pcdHandle->Instance == USB_OTG_FS)
     {
-        HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11 | GPIO_PIN_12);
+        __HAL_RCC_USB_OTG_FS_CLK_DISABLE();
+
+
+        HAL_GPIO_DeInit(GPIOA, OTG_FS_ID_Pin | OTG_FS_DM_Pin | OTG_FS_DP_Pin);
 
         /* Peripheral interrupt Deinit*/
         HAL_NVIC_DisableIRQ(OTG_FS_IRQn);
@@ -137,9 +154,11 @@ int usbd_hw_init(usbd_context_t *ctx)
         return HJALMAR_FAILED;
     }
 
-    HAL_PCDEx_SetRxFiFo(&hpcd_hjalmar, 0x80);
+    HAL_PCDEx_SetRxFiFo(&hpcd_hjalmar, 0x100);
     HAL_PCDEx_SetTxFiFo(&hpcd_hjalmar, 0, 0x40);
-    HAL_PCDEx_SetTxFiFo(&hpcd_hjalmar, 1, 0x80);
+    HAL_PCDEx_SetTxFiFo(&hpcd_hjalmar, 1, 0x100);
+    HAL_PCDEx_SetTxFiFo(&hpcd_hjalmar, 2, 0x100);
+    HAL_PCDEx_SetTxFiFo(&hpcd_hjalmar, 3, 0x80);
 
     return HJALMAR_OK;
 }
@@ -235,7 +254,6 @@ int usbd_ep_transmit(usbd_context_t *ctx, uint8_t ep_addr,
                      uint8_t *tx_buff, uint16_t size)
 {
     (void)ctx;
-    HAL_PCD_EP_Flush(&hpcd_hjalmar, ep_addr);
 
     HAL_StatusTypeDef hal_status = HAL_PCD_EP_Transmit(&hpcd_hjalmar, ep_addr, tx_buff, size);
 

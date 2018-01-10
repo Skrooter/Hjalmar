@@ -26,8 +26,8 @@
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 #endif
 
-#define USB_EP_TX(epnum)            (uint8_t)(0x80 | (0x7F & epnum))
-#define USB_EP_RX(epnum)            (uint8_t)(0x00 | (0x7F & epnum))
+#define USB_EP_TX(epnum)                (uint8_t)(0x80 | (0x7F & epnum))
+#define USB_EP_RX(epnum)                (uint8_t)(0x00 | (0x7F & epnum))
 
 #define USB_DEVICE_STATE_DEFAULT        1
 #define USB_DEVICE_STATE_ADDRESSED      2
