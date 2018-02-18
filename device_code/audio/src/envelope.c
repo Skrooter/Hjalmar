@@ -19,6 +19,7 @@ float sustain_level;
 uint32_t release_length;
 float release_length_f;
 float release_slope;
+float last_value_new_attack;
 
 void init_envelope(void)
 {
@@ -29,6 +30,7 @@ void init_envelope(void)
     decay_slope = ((1-sustain_level)/(float)decay_length);
     release_length = 15000;
     release_length_f = 1 / (float) release_length;
+    last_value_new_attack = 0;
 }
 
 hjalmar_error_code_t set_attack(uint8_t midi_attack)
@@ -76,7 +78,13 @@ void start_envelope(struct envelope_variables *envelope_parameters)
 {
     envelope_parameters->envelope_sample_counter = 0;
     envelope_parameters->release_done = 0;
-    envelope_parameters->envelope_state = ENVELOPE_ATTACK_STATE;
+    if (envelope_parameters->envelope_state == ENVELOPE_RELEASE_STATE) {
+        envelope_parameters->envelope_state = ENVELOPE_RELEASE_NEW_ATTACK_STATE;
+    }
+    else {
+        envelope_parameters->envelope_state = ENVELOPE_ATTACK_STATE;
+    }
+
     return;
 }
 
@@ -97,8 +105,11 @@ void get_sample_envelope(struct envelope_variables *envelope_parameters, float *
             break;
 
         case ENVELOPE_ATTACK_STATE:
-            envelope_parameters->release_start_level = attack_slope * envelope_parameters->envelope_sample_counter;
-            sample_level[i] = sample_level[i] * envelope_parameters->release_start_level;
+            envelope_parameters->release_start_level = attack_slope *
+                envelope_parameters->envelope_sample_counter;
+            sample_level[i] =
+                sample_level[i] * envelope_parameters->release_start_level;
+
             if(envelope_parameters->envelope_sample_counter >= attack_length) {
                 envelope_parameters->envelope_sample_counter = 0;
                 envelope_parameters->envelope_state = ENVELOPE_DECAY_STATE;
@@ -110,8 +121,11 @@ void get_sample_envelope(struct envelope_variables *envelope_parameters, float *
             break;
 
         case ENVELOPE_DECAY_STATE:
-            envelope_parameters->release_start_level = (1 - (decay_slope * envelope_parameters->envelope_sample_counter));
-            sample_level[i] =  sample_level[i] * envelope_parameters->release_start_level;
+            envelope_parameters->release_start_level = (1 -
+                (decay_slope * envelope_parameters->envelope_sample_counter));
+            sample_level[i] =  sample_level[i] *
+                envelope_parameters->release_start_level;
+
             if(envelope_parameters->envelope_sample_counter >= decay_length) {
                 envelope_parameters->envelope_sample_counter = 0;
                 envelope_parameters->envelope_state = ENVELOPE_SUSTAIN_STATE;
@@ -127,7 +141,10 @@ void get_sample_envelope(struct envelope_variables *envelope_parameters, float *
             break;
 
         case ENVELOPE_RELEASE_STATE:
-          sample_level[i] = sample_level[i] * (envelope_parameters->release_start_level - (release_slope * envelope_parameters->envelope_sample_counter));
+            sample_level[i] = sample_level[i] *
+              (envelope_parameters->release_start_level -
+              (release_slope * envelope_parameters->envelope_sample_counter));
+
             if(envelope_parameters->envelope_sample_counter >= release_length) {
                 envelope_parameters->envelope_sample_counter = 0;
                 envelope_parameters->envelope_state = ENVELOPE_IDLE_STATE;
@@ -135,6 +152,25 @@ void get_sample_envelope(struct envelope_variables *envelope_parameters, float *
             else {
                 envelope_parameters->envelope_sample_counter++;
             }
+            break;
+
+        case ENVELOPE_RELEASE_NEW_ATTACK_STATE:
+            sample_level[i] = sample_level[i] *
+              (envelope_parameters->release_start_level -
+              (release_slope * envelope_parameters->envelope_sample_counter));
+
+            if(envelope_parameters->envelope_sample_counter >= release_length) {
+                envelope_parameters->envelope_sample_counter = 0;
+                envelope_parameters->envelope_state = ENVELOPE_ATTACK_STATE;
+            }
+            else if ((last_value_new_attack < 0) != (sample_level[i] < 0)) {
+                envelope_parameters->envelope_sample_counter = 0;
+                envelope_parameters->envelope_state = ENVELOPE_ATTACK_STATE;
+            }
+            else {
+                envelope_parameters->envelope_sample_counter++;
+            }
+            last_value_new_attack = sample_level[i];
             break;
 
         default:

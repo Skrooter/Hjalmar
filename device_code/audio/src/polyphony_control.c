@@ -68,10 +68,6 @@ void reset_polyphony_voices(void)
 
 hjalmar_error_code_t request_voice(midi_note_number_t requested_note, uint8_t velocity)
 {
-    if(requested_note >= NOTE_C_5){
-        requested_note = NOTE_C_5;
-    }
-
     if ((requested_note > 127) || (velocity > 127)) {
         return HJALMAR_INVALID_ARGUMENT;
     }

@@ -16,7 +16,8 @@ typedef enum {
     ENVELOPE_ATTACK_STATE,
     ENVELOPE_DECAY_STATE,
     ENVELOPE_SUSTAIN_STATE,
-    ENVELOPE_RELEASE_STATE
+    ENVELOPE_RELEASE_STATE,
+    ENVELOPE_RELEASE_NEW_ATTACK_STATE
 } envelope_state_t;
 
 struct envelope_variables {
