@@ -67,7 +67,6 @@ PERIFLIB_SOURCES =
 #######################################
 # binaries
 #######################################
-BINPATH = /home/jaxc/opt/gcc-arm-none-eabi-6-2017-q1-update/bin/
 PREFIX = $(BINPATH)arm-none-eabi-
 CC = $(PREFIX)gcc
 AS = $(PREFIX)gcc -x assembler-with-cpp
