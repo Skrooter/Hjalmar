@@ -36,11 +36,11 @@
 #include "stm32f4xx_it.h"
 
 /* USER CODE BEGIN 0 */
-
+/* External variables --------------------------------------------------------*/
+extern PCD_HandleTypeDef hpcd_hjalmar;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern PCD_HandleTypeDef hpcd_hjalmar;
 extern DMA_HandleTypeDef hdma_spi3_tx;
 extern I2S_HandleTypeDef hi2s3;
 extern TIM_HandleTypeDef htim6;
