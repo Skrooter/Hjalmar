@@ -30,12 +30,12 @@ OPT = -g3 -O0
 #######################################
 # source path
 SOURCES_DIR =  \
-Drivers/CMSIS \
+stm32f4/Drivers/CMSIS \
 Application/User \
 Drivers \
 Application \
 Application/MAKEFILE \
-Drivers/STM32F4xx_HAL_Driver
+stm32f4/Drivers/STM32F4xx_HAL_Driver
 
 # firmware library path
 PERIFLIB_PATH =
@@ -51,7 +51,7 @@ OBJ_DIR = $(BUILD_DIR)/obj
 C_SOURCES =  \
 $(wildcard */src/*.c) \
 $(wildcard Src/*.c) \
-$(wildcard Drivers/STM32F4xx_HAL_Driver/Src/*.c)
+$(wildcard stm32f4/Drivers/STM32F4xx_HAL_Driver/Src/*.c)
 
 # ASM sources
 ASM_SOURCES =  \
@@ -107,10 +107,10 @@ AS_INCLUDES =
 # C includes
 C_INC =  \
 Inc \
-Drivers/STM32F4xx_HAL_Driver/Inc \
-Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
-Drivers/CMSIS/Device/ST/STM32F4xx/Include \
-Drivers/CMSIS/Include \
+stm32f4/Drivers/STM32F4xx_HAL_Driver/Inc \
+stm32f4/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+stm32f4/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
+stm32f4/Drivers/CMSIS/Include \
 $(wildcard */inc/)
 
 NULL=
