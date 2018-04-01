@@ -11,12 +11,14 @@
 #include <string.h>
 #include <math.h>
 
+#include "audio_gen.h"
 #include "debug_uart.h"
 #include "envelope.h"
+#include "main.h"
 #include "midi_cmd.h"
 #include "midi_constants.h"
 #include "polyphony_control.h"
-#include "usart.h"
+#include "uart_abstraction.h"
 #include "work_queue.h"
 
 
@@ -39,26 +41,26 @@ typedef enum MIDI_state{
 
 midi_state_t midi_rx_state;
 
-HAL_StatusTypeDef transmit_midi_message(uint8_t *message, uint16_t size) {
+hjalmar_error_code_t transmit_midi_message(uint8_t *message, uint16_t size) {
     midi_tx_rdy = 0;
-    return HAL_UART_Transmit_DMA(&huart2, message, size);
+    return uart_transmit(HJALMAR_UART_MIDI, message, size);
 }
 
-HAL_StatusTypeDef start_midi_receive(void) {
+hjalmar_error_code_t start_midi_receive(void) {
     return receive_first_midi_byte();
 }
 
-HAL_StatusTypeDef receive_first_midi_byte(void) {
+hjalmar_error_code_t receive_first_midi_byte(void) {
     midi_rx_rdy = 0;
     midi_rx_state = MIDI_RX_CMD_BYTE;
-    return HAL_UART_Receive_DMA(&huart2, &midi_rx_dma_byte, 1);
+    return uart_receive(HJALMAR_UART_MIDI, &midi_rx_dma_byte, 1);
 }
 
 void handle_midi_int(void)
 {
     uint8_t *midi_rx_byte = malloc(sizeof(uint8_t));
     *midi_rx_byte = midi_rx_dma_byte;
-    if(HAL_UART_Receive_DMA(&huart2, &midi_rx_dma_byte, 1) != HAL_OK) {
+    if(uart_receive(HJALMAR_UART_MIDI, &midi_rx_dma_byte, 1) != HJALMAR_OK) {
         _Error_Handler(__FILE__, __LINE__);
     }
 

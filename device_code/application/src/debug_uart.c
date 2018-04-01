@@ -5,17 +5,17 @@
  *      Author: jaxc
  */
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-#include "stm32f4xx_hal.h"
-
-#include "usart.h"
 #include "debug_uart.h"
+#include "timebase.h"
+#include "uart_abstraction.h"
 
-//uint8_t *log_line = {0};
-uint8_t line_length;
+uint8_t line_max_length;
 uint8_t **log_buffer = {0};
 uint8_t buffer_head;
 uint8_t buffer_tail;
@@ -44,15 +44,16 @@ void debug_log_add(uint8_t *message, uint8_t size, log_level_t log_level)
     }
 
     uint8_t copy_size;
-    copy_size = (size > line_length - buffer_header_size) ? line_length - buffer_header_size : size;
+    copy_size = (size > line_max_length - buffer_header_size) ?
+            line_max_length - buffer_header_size : size;
 
-    memset(log_buffer[buffer_head], 0, line_length);
-    sprintf((char *) log_buffer[buffer_head],"%8d: ", (unsigned int) HAL_GetTick());
+    memset(log_buffer[buffer_head], 0, line_max_length);
+    sprintf((char *) log_buffer[buffer_head],"%8"PRIu32": ", get_mcu_tick());
     memcpy(log_buffer[buffer_head] + buffer_header_size, message, copy_size);
-    if (strlen((char *) log_buffer[buffer_head]) > line_length - 3) {
-        log_buffer[buffer_head][line_length-2] = '\r';
-        log_buffer[buffer_head][line_length-1] = '\n';
-        log_buffer[buffer_head][line_length] = '\0';
+    if (strlen((char *) log_buffer[buffer_head]) > (size_t)(line_max_length - 3)) {
+        log_buffer[buffer_head][line_max_length-2] = '\r';
+        log_buffer[buffer_head][line_max_length-1] = '\n';
+        log_buffer[buffer_head][line_max_length] = '\0';
     }
     else {
         log_buffer[buffer_head][strlen((char *)log_buffer[buffer_head])] = '\r';
@@ -88,9 +89,9 @@ void init_debug(uint8_t message_size, uint8_t n_buff_elem, log_level_t log_level
         return;
     }
     log_buffer = malloc(sizeof( *log_buffer) * n_buff_elem);
-    line_length = message_size + buffer_header_size + 1;
+    line_max_length = message_size + buffer_header_size + 1;
     for(int8_t i = 0; i < n_buff_elem; i++){
-        log_buffer[i] = malloc(sizeof(uint8_t) * line_length);
+        log_buffer[i] = malloc(sizeof(uint8_t) * line_max_length);
     }
     buffer_size = n_buff_elem;
     buffer_head = 0;
@@ -102,13 +103,14 @@ void init_debug(uint8_t message_size, uint8_t n_buff_elem, log_level_t log_level
 
 void send_debug_from_buffer()
 {
-    HAL_GPIO_WritePin(GPIOD, LD3_Pin, led_stat);
+    /*HAL_GPIO_WritePin(GPIOD, LD3_Pin, led_stat);*/
     led_stat = !led_stat;
     if(buffer_tail != buffer_head)
     {
         uint8_t prev_tail = buffer_tail;
         buffer_tail = inc_position(buffer_tail);
-        HAL_UART_Transmit_DMA(&huart3, log_buffer[prev_tail], strlen((char *)log_buffer[prev_tail]));
+        uart_transmit(HJALMAR_UART_DEBUG, log_buffer[prev_tail],
+                strlen((char *)log_buffer[prev_tail]));
     }
     else{
         tx_rdy = 1;

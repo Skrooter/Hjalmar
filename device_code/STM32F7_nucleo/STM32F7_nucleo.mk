@@ -2,7 +2,7 @@
 C_SOURCES += \
 	$(wildcard $(DEV_HAL)/Drivers/STM32F7xx_HAL_Driver/Src/*.c) \
 	$(wildcard $(DEV_HAL)/Src/*.c)
-	
+
 ASM_SOURCES =  \
 	$(DEV_HAL)/startup_stm32f722xx.s
 
@@ -12,11 +12,11 @@ C_INC =  \
 	$(DEV_HAL)/Drivers/CMSIS/Include \
 	$(DEV_HAL)/Drivers/STM32F7xx_HAL_Driver/Inc \
 	$(DEV_HAL)/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy
-	
+
 # link script
 LDSCRIPT = \
-	$(DEV_HAL)/STM32F722ZETx_FLASH.ld	
-	
+	$(DEV_HAL)/STM32F722ZETx_FLASH.ld
+
 #######################################
 # CFLAGS
 #######################################

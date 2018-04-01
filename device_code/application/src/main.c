@@ -38,7 +38,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "stm32f4xx_hal.h"
 #include "dma.h"
 #include "i2c.h"
 #include "i2s.h"
@@ -55,13 +54,16 @@
 #include "audio_interface.h"
 #include "debug_uart.h"
 #include "envelope.h"
+#include "general_functions.h"
 #include "io_expander.h"
 #include "midi_cmd.h"
 #include "midi_constants.h"
 #include "polyphony_control.h"
-#include "work_queue.h"
+#include "uart_abstraction.h"
 #include "usb_hjalmar.h"
+#include "usbd_loopback.h"
 
+#include "work_queue.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -71,28 +73,7 @@
 
 static uint8_t test_0[256];
 static uint8_t test_1[256];
-static uint8_t msg[256];
-static uint16_t rec_len = 0;
 
-static void vcom_echo(void *data)
-{
-    uint16_t len = *((uint16_t *)data);
-    int msg_len = snprintf((char *)msg, sizeof(msg), "Received %u characters\n\r", len);
-
-    usb_cdc_transmit(msg, msg_len);
-    HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-}
-
-static void vcom_rx_complete(uint8_t *data, uint16_t len, void *usr)
-{
-    (void)usr;
-    (void)data;
-    rec_len = len;
-    work_queue_add(vcom_echo, &rec_len);
-    HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
-}
-
-static uint64_t ticks_ms = 0;
 static usb_hjalmar_t hj = {
     .midi_rx_buffer = &test_0[0],
     .cdc_rx_buffer = &test_1[0],
@@ -114,25 +95,9 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
-static void toggle_led(void *data)
-{
-    (void)data;
-    HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-}
-
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
-void HAL_SYSTICK_Callback(void)
-{
-    ticks_ms++;
-
-    if ((ticks_ms % 1000) == 0)
-    {
-        work_queue_add(toggle_led, NULL);
-    }
-}
 
 /* USER CODE END 0 */
 
@@ -164,26 +129,19 @@ int main(void)
     /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
-    MX_GPIO_Init();
-    MX_DMA_Init();
-    MX_I2C1_Init();
-    MX_I2S3_Init();
-    MX_TIM6_Init();
-    MX_TIM7_Init();
-    MX_USART2_UART_Init();
-    MX_USART3_UART_Init();
+    init_periphials();
 
     /* USER CODE BEGIN 2 */
     //init_io_expander();
     init_audio_output();
     init_polyphony_control();
-    HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
+    /*HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);*/
 
     init_debug(64, 127, LOG_LEVEL_INFO);
 
-    if (start_midi_receive() != HAL_OK)
+    if (start_midi_receive() != HJALMAR_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
@@ -192,8 +150,10 @@ int main(void)
     int ret = usb_hjalmar_init(&hj);
     if (ret != HJALMAR_OK)
     {
-        HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+        _Error_Handler(__FILE__, __LINE__);
     }
+    uint8_t debug_msg[127] = "System init completed";
+    debug_log_add(debug_msg, 127, LOG_LEVEL_INFO);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -292,21 +252,15 @@ void _Error_Handler(char *file, int line)
   /* User can add his own implementation to report the HAL error return state */
   while(1)
   {
-      HAL_UART_AbortTransmit(&huart3);
       char tx_msg[64] = {0};
       sprintf(tx_msg,"error in %s Line %d\r\n", file, line);
-      while(huart2.gState != HAL_UART_STATE_READY);
-      HAL_UART_Transmit_DMA(&huart3, (uint8_t *)tx_msg, 64);
-      while(huart2.gState != HAL_UART_STATE_READY);
-      HAL_UART_DeInit(&huart3);
-      HAL_UART_DeInit(&huart2);
-      HAL_UART_AbortTransmit(&huart3);
+      while(uart_ready(HJALMAR_UART_DEBUG) != HJALMAR_OK);
+      uart_transmit(HJALMAR_UART_DEBUG, (uint8_t *)tx_msg, 64);
+      while(uart_ready(HJALMAR_UART_DEBUG) != HJALMAR_OK);
 
-      //if (huart1 == HAL_ERROR){
-          HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
-      //}
-
-
+      while (1);
+      /*HAL_UART_DeInit(&huart3);
+      uart_deinit(&huart1);*/
   }
   /* USER CODE END Error_Handler_Debug */
 }

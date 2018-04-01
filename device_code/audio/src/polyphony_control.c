@@ -8,8 +8,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "i2s.h"
-
 #include "audio_constants.h"
 #include "audio_functions.h"
 #include "audio_gen.h"
@@ -22,8 +20,7 @@ struct wave_information *voice_info;
 
 void init_polyphony_control(void)
 {
-    I2S_HandleTypeDef *i2s_handle = get_i2s_handle();
-    sample_per_sec = i2s_handle->Init.AudioFreq;
+    sample_per_sec = HJALMAR_AUDIOFREQ;
     voice_info = malloc(sizeof(struct wave_information) * POLYPHONY_VOICES);
     init_envelope();
     reset_polyphony_voices();

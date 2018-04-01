@@ -16,7 +16,8 @@ typedef enum general_erros{
     HJALMAR_NOT_SUPPORTED      = -4,
     HJALMAR_NOT_IMPLEMENTED    = -5,
     HJALMAR_INVALID_ARGUMENT   = -6,
-    HJALMAR_QUEUE_FULL         = -7
+    HJALMAR_QUEUE_FULL         = -7,
+    HJALMAR_HAL_ERROR         = -8
 } hjalmar_error_code_t;
 
 

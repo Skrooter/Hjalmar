@@ -13,7 +13,6 @@
 #include "audio_gen.h"
 #include "audio_interface.h"
 #include "envelope.h"
-#include "i2s.h"
 #include "polyphony_control.h"
 
 
