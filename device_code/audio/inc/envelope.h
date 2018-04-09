@@ -38,10 +38,10 @@ struct envelope_variables {
 } ;
 
 void init_envelope(void);
-hjalmar_error_code_t set_attack(uint8_t midi_attack);
-hjalmar_error_code_t set_decay(uint8_t midi_decay);
-hjalmar_error_code_t set_sustain(uint8_t midi_sustain);
-hjalmar_error_code_t set_release(uint8_t midi_release);
+hjalmar_error_code_t set_attack(float attack_time);
+hjalmar_error_code_t set_decay(float decay_time);
+hjalmar_error_code_t set_sustain(float sustain_level);
+hjalmar_error_code_t set_release(float release_level);
 void start_envelope(struct envelope_variables *envelope_parameters);
 void start_release(struct envelope_variables *envelope_parameters);
 void get_sample_envelope(struct envelope_variables *envelope_parameters, float *sample_level, uint16_t n_samples);

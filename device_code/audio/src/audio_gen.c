@@ -20,6 +20,8 @@
 
 #include "math.h"
 
+#include "audio_constants.h"
+#include "audio_filter.h"
 #include "audio_gen.h"
 #include "audio_interface.h"
 #include "envelope.h"
@@ -300,8 +302,9 @@ void fetch_next_audio_buffer(float *audio_samples, uint16_t n_sample)
             for(uint8_t i = 0; i < active_polyphony; i++){
                audio_samples[j] += voice_samples[i][j];
             }
-            audio_samples[j] = audio_samples[j] * 0.125;
+            audio_samples[j] = audio_samples[j] * (1.0 / POLYPHONY_VOICES);
         }
+        filter_calculate_samples(audio_samples, n_sample);
     }
 
     return;

@@ -70,6 +70,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "audio_filter.h"
 #include "audio_gen.h"
 #include "audio_interface.h"
 #include "debug_uart.h"
@@ -155,6 +156,7 @@ int main(void)
     //init_io_expander();
     init_audio_output();
     init_polyphony_control();
+    init_filter();
     /*HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);*/

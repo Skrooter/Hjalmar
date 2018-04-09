@@ -43,43 +43,42 @@ void init_envelope(void)
     last_value_new_attack = 0;
 }
 
-hjalmar_error_code_t set_attack(uint8_t midi_attack)
+hjalmar_error_code_t set_attack(float attack_time)
 {
-    if (midi_attack > 127) {
+    if (attack_time < 0) {
         return HJALMAR_INVALID_ARGUMENT;
     }
-    attack_length = 500 * (uint16_t)midi_attack;
-    attack_slope = 1/(float)attack_length;
+    attack_length = attack_time;
+    attack_slope = 1.0 / attack_length;
     return HJALMAR_OK;
 }
 
-hjalmar_error_code_t set_decay(uint8_t midi_decay)
+hjalmar_error_code_t set_decay(float decay_time)
 {
-    if (midi_decay > 127) {
+    if (decay_time < 0) {
         return HJALMAR_INVALID_ARGUMENT;
     }
-    decay_length = 500 * (uint16_t)midi_decay;
-    decay_slope = ((1-sustain_level)/(float)decay_length);
+    decay_length = decay_time;
+    decay_slope = ((1.0 - sustain_level) / decay_length);
     return HJALMAR_OK;
 }
 
-hjalmar_error_code_t set_sustain(uint8_t midi_sustain)
+hjalmar_error_code_t set_sustain(float new_sustain_level)
 {
-    if (midi_sustain > 127) {
+    if ((new_sustain_level < 0) || (new_sustain_level > 1)) {
         return HJALMAR_INVALID_ARGUMENT;
     }
-    decay_slope = ((1-sustain_level)/(float)decay_length);
-    sustain_level = (float)midi_sustain / 127;
+    sustain_level = new_sustain_level;
     return HJALMAR_OK;
 }
 
-hjalmar_error_code_t set_release(uint8_t midi_release)
+hjalmar_error_code_t set_release(float release_time)
 {
-    if (midi_release > 127) {
+    if (release_time < 0) {
         return HJALMAR_INVALID_ARGUMENT;
     }
-    release_length = 500 * (uint16_t)midi_release;
-    release_length_f = 1 / (float) release_length;
+    release_length = release_time;
+    release_length_f = 1.0 / release_length;
 
     return HJALMAR_OK;
 }

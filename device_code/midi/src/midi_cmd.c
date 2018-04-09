@@ -21,12 +21,14 @@
 #include <string.h>
 #include <math.h>
 
+#include "audio_filter.h"
 #include "audio_gen.h"
 #include "debug_uart.h"
 #include "envelope.h"
 #include "main.h"
 #include "midi_cmd.h"
 #include "midi_constants.h"
+#include "midi_conv_tables.h"
 #include "polyphony_control.h"
 #include "uart_abstraction.h"
 #include "work_queue.h"
@@ -153,20 +155,28 @@ void handle_midi(void *midi_rx_in) {
                 audio_gen_wave_form(midi_rx_msg[2] / 8);
                 break;
 
+            case 0x16:
+                change_cutoff(frequency_lut[midi_rx_msg[2]]);
+                break;
+
+            case 0x17:
+                change_q(q_lut[midi_rx_msg[2]]);
+                break;
+
             case 0x19:
-                set_attack(midi_rx_msg[2]);
+                set_attack(adr_time[midi_rx_msg[2]]);
                 break;
 
             case 0x1a:
-                set_decay(midi_rx_msg[2]);
+                set_decay(adr_time[midi_rx_msg[2]]);
                 break;
 
             case 0x1b:
-                set_sustain(midi_rx_msg[2]);
+                set_sustain(midi_percent_lin[midi_rx_msg[2]]);
                 break;
 
             case 0x1c:
-                set_release(midi_rx_msg[2]);
+                set_release(adr_time[midi_rx_msg[2]]);
                 break;
 
             default:

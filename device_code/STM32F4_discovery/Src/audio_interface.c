@@ -174,6 +174,11 @@ void mono_to_stereo (uint16_t *stereo_samples, float *mono_samples, uint16_t n_s
 {
     uint16_t current_sample_int;
     for(uint32_t i = 0; i < n_sample_mono; i++) {
+        if(mono_samples[i] > 1) {
+            mono_samples[i] = 1.0;
+        } else if (mono_samples[i] < -1) {
+            mono_samples[i] = -1.0;
+        }
         current_sample_int = (int16_t)(mono_samples[i] * INT16_MAX);
         stereo_samples[2 * i] =  current_sample_int;
         stereo_samples[(2 * i) + 1] = current_sample_int;

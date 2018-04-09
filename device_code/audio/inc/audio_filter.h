@@ -18,8 +18,10 @@
 #ifndef AUDIO_INC_AUDIO_FILTER_H_
 #define AUDIO_INC_AUDIO_FILTER_H_
 
+void init_filter (void);
 
-
-
+void filter_calculate_samples (float *sample_level, uint16_t n_samples);
+void change_cutoff(float new_cutoff);
+void change_q(float new_q);
 
 #endif /* AUDIO_INC_AUDIO_FILTER_H_ */
