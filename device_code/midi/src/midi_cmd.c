@@ -179,6 +179,15 @@ void handle_midi(void *midi_rx_in) {
                 set_release(adr_time[midi_rx_msg[2]]);
                 break;
 
+            case 0x68:
+
+            case 0x69:
+            case 0x6a:
+            case 0x6b:
+            case 0x6c:
+                enable_slow_slew();
+            case 0x6d:
+                disable_slow_slew();
             default:
                 break;
             }

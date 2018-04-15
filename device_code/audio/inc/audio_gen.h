@@ -36,6 +36,9 @@ typedef enum {
 
 #define N_WAVES WAVE_LAST
 
+void enable_slow_slew(void);
+void disable_slow_slew(void);
+
 void audio_gen_wave_start(float freq, float level);
 void audio_gen_wave_form(audio_wave_type_t wave_type);
 void audio_gen_wave_stop(void);
